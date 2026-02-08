@@ -1,24 +1,33 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { ParticipantDashboard } from "./participant-dashboard";
 import { AdminDashboard } from "./admin-dashboard";
+import type { Role } from "@prisma/client";
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  let effectiveRole: Role = session.user.role;
+  if (session.user.role === "ADMIN") {
+    const impersonate = cookies().get("innopark-impersonate-role")?.value;
+    if (impersonate === "CENTER_STAFF" || impersonate === "PARTICIPANT") {
+      effectiveRole = impersonate;
+    }
+  }
+
+  if (effectiveRole === "PARTICIPANT") {
+    redirect("/rma");
+  }
+
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  if (session.user.role === "PARTICIPANT") {
-    redirect("/rma");
-  }
-
   // Admin/Staff dashboard
   const centerFilter =
-    session.user.role === "CENTER_STAFF"
+    effectiveRole === "CENTER_STAFF"
       ? { center: session.user.primaryCenter }
       : {};
 
@@ -50,7 +59,7 @@ export default async function DashboardPage() {
 
   return (
     <AdminDashboard
-      role={session.user.role}
+      role={effectiveRole}
       center={session.user.primaryCenter}
       pendingRmas={pendingRmas}
       totalParticipants={totalParticipants}
