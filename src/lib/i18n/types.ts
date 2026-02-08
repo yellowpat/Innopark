@@ -176,6 +176,7 @@ export interface Dictionary {
     };
     otherCenterQuestion: string;
     otherCenterAdd: string;
+    rmaAlreadyCreated: string;
     noSubmission: string;
     createFirst: string;
     history: string;
