@@ -274,13 +274,13 @@ export function RmaCalendarGrid({
         <tbody>
           <tr>
             <td className="border px-2 py-1.5 bg-gray-50 font-medium sticky left-0 z-10">
-              AM
+              {t.common.morning}
             </td>
             {days.map((d) => renderCell(d, "AM"))}
           </tr>
           <tr>
             <td className="border px-2 py-1.5 bg-gray-50 font-medium sticky left-0 z-10">
-              PM
+              {t.common.afternoon}
             </td>
             {days.map((d) => renderCell(d, "PM"))}
           </tr>
