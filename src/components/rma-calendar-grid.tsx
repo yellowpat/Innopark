@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { RMA_CODE_COLORS } from "@/lib/constants";
 import { useTranslation } from "@/lib/i18n/context";
-import { X } from "lucide-react";
+import { X, Eraser, Paintbrush } from "lucide-react";
 import type { RmaCode, HalfDay } from "@prisma/client";
 
 interface GridEntry {
@@ -84,6 +84,8 @@ export function RmaCalendarGrid({
   const [showMSub, setShowMSub] = useState(false);
   const [showMLocality, setShowMLocality] = useState(false);
   const [mandateLocality, setMandateLocality] = useState("");
+  const [activeCode, setActiveCode] = useState<RmaCode | "eraser" | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const lastMandateLocalityRef = useRef("");
   const pickerRef = useRef<HTMLDivElement>(null);
   const daysInMonth = getDaysInMonth(year, month);
@@ -133,6 +135,32 @@ export function RmaCalendarGrid({
       };
     }
   }, [pickerTarget, closePicker]);
+
+  // End drag on mouseup anywhere
+  useEffect(() => {
+    function handleMouseUp() {
+      setIsDragging(false);
+    }
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  function applyBrush(day: number, halfDay: HalfDay) {
+    if (readOnly || !onChange) return;
+    if (holidays.has(day) || isWeekend(year, month, day)) return;
+    if (activeCode === "eraser") {
+      const newEntries = entries.filter(
+        (e) => !(e.day === day && e.halfDay === halfDay)
+      );
+      onChange(newEntries);
+    } else if (activeCode) {
+      const newEntries = entries.filter(
+        (e) => !(e.day === day && e.halfDay === halfDay)
+      );
+      newEntries.push({ day, halfDay, code: activeCode });
+      onChange(newEntries);
+    }
+  }
 
   function setCode(day: number, halfDay: HalfDay, code: RmaCode) {
     if (readOnly || !onChange) return;
@@ -192,14 +220,50 @@ export function RmaCalendarGrid({
     onMandateDetail?.(pickerTarget.day, pickerTarget.halfDay, "onsite", mandateLocality.trim() || undefined);
   }
 
-  function openPicker(
+  function handleCellClick(
     day: number,
     halfDay: HalfDay,
     e: React.MouseEvent<HTMLTableCellElement>
   ) {
-    if (readOnly || holidays.has(day)) return;
+    if (readOnly || holidays.has(day) || isWeekend(year, month, day)) return;
+
+    if (activeCode === "eraser") {
+      applyBrush(day, halfDay);
+      return;
+    }
+
+    if (activeCode) {
+      // G and M need sub-pickers even in brush mode
+      if (activeCode === "G" || activeCode === "M") {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setPickerTarget({ day, halfDay, rect });
+        if (activeCode === "G") setShowGSub(true);
+        else setShowMSub(true);
+        return;
+      }
+      applyBrush(day, halfDay);
+      return;
+    }
+
+    // No brush active — open the normal popup picker
     const rect = e.currentTarget.getBoundingClientRect();
     setPickerTarget({ day, halfDay, rect });
+  }
+
+  function handleCellMouseDown(day: number, halfDay: HalfDay) {
+    if (!activeCode || readOnly) return;
+    if (holidays.has(day) || isWeekend(year, month, day)) return;
+    // G and M excluded from drag
+    if (activeCode === "G" || activeCode === "M") return;
+    setIsDragging(true);
+    applyBrush(day, halfDay);
+  }
+
+  function handleCellMouseEnter(day: number, halfDay: HalfDay) {
+    if (!isDragging || !activeCode || readOnly) return;
+    if (holidays.has(day) || isWeekend(year, month, day)) return;
+    if (activeCode === "G" || activeCode === "M") return;
+    applyBrush(day, halfDay);
   }
 
   function renderCell(day: number, halfDay: HalfDay) {
@@ -209,19 +273,25 @@ export function RmaCalendarGrid({
     const isHoliday = holidays.has(day);
     const isActive =
       pickerTarget?.day === day && pickerTarget?.halfDay === halfDay;
+    const brushActive = activeCode !== null && !readOnly;
+    const cellPaintable = brushActive && !weekend && !isHoliday;
 
     return (
       <td
         key={key}
         className={cn(
-          "border text-center text-xs h-9 min-w-[2.25rem] cursor-pointer select-none transition-colors",
+          "border text-center text-xs h-9 min-w-[2.25rem] select-none transition-colors",
           weekend && "bg-gray-50",
           isHoliday && "bg-gray-200 cursor-default",
           isActive && "ring-2 ring-primary ring-inset",
-          !code && !weekend && !isHoliday && !readOnly && "hover:bg-blue-50",
+          !code && !weekend && !isHoliday && !readOnly && !brushActive && "hover:bg-blue-50",
+          cellPaintable && "cursor-crosshair hover:bg-blue-50/60",
+          !readOnly && !brushActive && !isHoliday && "cursor-pointer",
           readOnly && "cursor-default"
         )}
-        onClick={(e) => openPicker(day, halfDay, e)}
+        onClick={(e) => handleCellClick(day, halfDay, e)}
+        onMouseDown={() => handleCellMouseDown(day, halfDay)}
+        onMouseEnter={() => handleCellMouseEnter(day, halfDay)}
       >
         {code && (
           <span
@@ -336,6 +406,61 @@ export function RmaCalendarGrid({
           </span>
         ))}
       </div>
+
+      {/* Quick-fill toolbar */}
+      {!readOnly && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Paintbrush className="h-3.5 w-3.5" />
+            <span className="font-medium">Quick fill</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {SELECTABLE_CODES.map((code) => (
+              <button
+                key={code}
+                type="button"
+                className={cn(
+                  "inline-flex items-center justify-center h-7 w-7 rounded text-xs font-bold border transition-all",
+                  RMA_CODE_COLORS[code],
+                  activeCode === code
+                    ? "ring-2 ring-primary ring-offset-1 scale-110"
+                    : "hover:scale-105 opacity-75 hover:opacity-100"
+                )}
+                onClick={() =>
+                  setActiveCode(activeCode === code ? null : code)
+                }
+                title={RMA_CODE_LABELS[code]}
+              >
+                {code}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center justify-center h-7 w-7 rounded border transition-all",
+                activeCode === "eraser"
+                  ? "ring-2 ring-primary ring-offset-1 scale-110 bg-gray-100"
+                  : "hover:scale-105 opacity-75 hover:opacity-100 bg-gray-50"
+              )}
+              onClick={() =>
+                setActiveCode(activeCode === "eraser" ? null : "eraser")
+              }
+              title={t.common.remove}
+            >
+              <Eraser className="h-3.5 w-3.5 text-gray-600" />
+            </button>
+          </div>
+          {activeCode && (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+              onClick={() => setActiveCode(null)}
+            >
+              {t.common.cancel}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Days 1-16 */}
       <div className="overflow-x-auto rounded border">
