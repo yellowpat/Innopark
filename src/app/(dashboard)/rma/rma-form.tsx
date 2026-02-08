@@ -320,7 +320,7 @@ export function RmaForm({
       </div>
 
       {/* G Details — Autres absences justifiées */}
-      <div className="rounded-lg border bg-white p-6">
+      <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-6">
         <h3 className="mb-4 font-semibold">{t.rma.absences}</h3>
 
         {absenceDetails.length === 0 ? (
@@ -377,7 +377,7 @@ export function RmaForm({
       </div>
 
       {/* M Details — Mandat externe */}
-      <div className="rounded-lg border bg-white p-6">
+      <div className="rounded-lg border border-purple-300 bg-purple-50 p-6">
         <h3 className="mb-4 font-semibold">{t.rma.mandate}</h3>
 
         {mandateDetails.length === 0 ? (
