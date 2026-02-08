@@ -85,6 +85,8 @@ export function RmaCalendarGrid({
   const [showMLocality, setShowMLocality] = useState(false);
   const [mandateLocality, setMandateLocality] = useState("");
   const [activeCode, setActiveCode] = useState<RmaCode | "eraser" | null>(null);
+  const [activeGCategory, setActiveGCategory] = useState<AbsenceCategory | null>(null);
+  const [showGToolbarPicker, setShowGToolbarPicker] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const lastMandateLocalityRef = useRef("");
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -159,6 +161,9 @@ export function RmaCalendarGrid({
       );
       newEntries.push({ day, halfDay, code: activeCode });
       onChange(newEntries);
+      if (activeCode === "G" && activeGCategory) {
+        onAbsenceDetail?.(day, halfDay, activeGCategory);
+      }
     }
   }
 
@@ -233,7 +238,12 @@ export function RmaCalendarGrid({
     }
 
     if (activeCode) {
-      // G and M need sub-pickers even in brush mode
+      // G with category already chosen → paint directly
+      if (activeCode === "G" && activeGCategory) {
+        applyBrush(day, halfDay);
+        return;
+      }
+      // G without category or M → open sub-picker
       if (activeCode === "G" || activeCode === "M") {
         const rect = e.currentTarget.getBoundingClientRect();
         setPickerTarget({ day, halfDay, rect });
@@ -253,8 +263,9 @@ export function RmaCalendarGrid({
   function handleCellMouseDown(day: number, halfDay: HalfDay) {
     if (!activeCode || readOnly) return;
     if (holidays.has(day) || isWeekend(year, month, day)) return;
-    // G and M excluded from drag
-    if (activeCode === "G" || activeCode === "M") return;
+    // G without category or M excluded from drag
+    if (activeCode === "G" && !activeGCategory) return;
+    if (activeCode === "M") return;
     setIsDragging(true);
     applyBrush(day, halfDay);
   }
@@ -262,7 +273,8 @@ export function RmaCalendarGrid({
   function handleCellMouseEnter(day: number, halfDay: HalfDay) {
     if (!isDragging || !activeCode || readOnly) return;
     if (holidays.has(day) || isWeekend(year, month, day)) return;
-    if (activeCode === "G" || activeCode === "M") return;
+    if (activeCode === "G" && !activeGCategory) return;
+    if (activeCode === "M") return;
     applyBrush(day, halfDay);
   }
 
@@ -409,6 +421,7 @@ export function RmaCalendarGrid({
 
       {/* Quick-fill toolbar */}
       {!readOnly && (
+        <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Paintbrush className="h-3.5 w-3.5" />
@@ -426,9 +439,23 @@ export function RmaCalendarGrid({
                     ? "ring-2 ring-primary ring-offset-1 scale-110"
                     : "hover:scale-105 opacity-75 hover:opacity-100"
                 )}
-                onClick={() =>
-                  setActiveCode(activeCode === code ? null : code)
-                }
+                onClick={() => {
+                  if (code === "G") {
+                    if (activeCode === "G") {
+                      setActiveCode(null);
+                      setActiveGCategory(null);
+                      setShowGToolbarPicker(false);
+                    } else {
+                      setShowGToolbarPicker(true);
+                      setActiveCode(null);
+                      setActiveGCategory(null);
+                    }
+                  } else {
+                    setShowGToolbarPicker(false);
+                    setActiveGCategory(null);
+                    setActiveCode(activeCode === code ? null : code);
+                  }
+                }}
                 title={RMA_CODE_LABELS[code]}
               >
                 {code}
@@ -442,23 +469,56 @@ export function RmaCalendarGrid({
                   ? "ring-2 ring-primary ring-offset-1 scale-110 bg-gray-100"
                   : "hover:scale-105 opacity-75 hover:opacity-100 bg-gray-50"
               )}
-              onClick={() =>
-                setActiveCode(activeCode === "eraser" ? null : "eraser")
-              }
+              onClick={() => {
+                setShowGToolbarPicker(false);
+                setActiveGCategory(null);
+                setActiveCode(activeCode === "eraser" ? null : "eraser");
+              }}
               title={t.common.remove}
             >
               <Eraser className="h-3.5 w-3.5 text-gray-600" />
             </button>
           </div>
-          {activeCode && (
+          {activeCode === "G" && activeGCategory && (
+            <span className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-0.5">
+              G — {t.rma.absenceCategories[activeGCategory]}
+            </span>
+          )}
+          {(activeCode || showGToolbarPicker) && (
             <button
               type="button"
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
-              onClick={() => setActiveCode(null)}
+              onClick={() => {
+                setActiveCode(null);
+                setActiveGCategory(null);
+                setShowGToolbarPicker(false);
+              }}
             >
               {t.common.cancel}
             </button>
           )}
+        </div>
+        {showGToolbarPicker && !activeGCategory && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs text-muted-foreground font-medium">
+              G —
+            </span>
+            {G_SUBCATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className="rounded border border-yellow-300 bg-yellow-50 px-2.5 py-1 text-xs text-yellow-800 hover:bg-yellow-100 transition-colors"
+                onClick={() => {
+                  setActiveGCategory(cat);
+                  setActiveCode("G" as RmaCode);
+                  setShowGToolbarPicker(false);
+                }}
+              >
+                {t.rma.absenceCategories[cat]}
+              </button>
+            ))}
+          </div>
+        )}
         </div>
       )}
 
