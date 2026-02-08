@@ -174,6 +174,8 @@ export interface Dictionary {
       JOB_INTERVIEW: string;
       OTHER: string;
     };
+    otherCenterQuestion: string;
+    otherCenterAdd: string;
     noSubmission: string;
     createFirst: string;
     history: string;

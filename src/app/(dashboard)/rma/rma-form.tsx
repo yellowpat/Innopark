@@ -108,6 +108,10 @@ export function RmaForm({
     existingData?.absenceDetails || []
   );
   const [mandateDetails, setMandateDetails] = useState<MandateDetail[]>([]);
+  const [otherCenterWork, setOtherCenterWork] = useState(false);
+  const [otherCenterEntries, setOtherCenterEntries] = useState<
+    { date: string; center: string }[]
+  >([]);
 
   const readOnly = existingStatus === "SUBMITTED";
 
@@ -188,6 +192,10 @@ export function RmaForm({
               location: d.location,
               locality: d.locality || undefined,
             }))
+          : undefined,
+      otherCenterEntries:
+        otherCenterWork && otherCenterEntries.length > 0
+          ? otherCenterEntries
           : undefined,
     };
   }
@@ -407,6 +415,104 @@ export function RmaForm({
                 );
               });
             })()}
+          </div>
+        )}
+      </div>
+
+      {/* Other Center Section */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="mb-4 font-semibold">
+          {t.rma.otherCenterQuestion} {t.centers[center as keyof typeof t.centers]} ?
+        </h3>
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="otherCenter"
+              checked={!otherCenterWork}
+              onChange={() => {
+                setOtherCenterWork(false);
+                setOtherCenterEntries([]);
+              }}
+              disabled={readOnly}
+            />
+            {t.common.no}
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="otherCenter"
+              checked={otherCenterWork}
+              onChange={() => setOtherCenterWork(true)}
+              disabled={readOnly}
+            />
+            {t.common.yes}
+          </label>
+        </div>
+
+        {otherCenterWork && (
+          <div className="space-y-3">
+            {otherCenterEntries.map((entry, index) => (
+              <div key={index} className="flex gap-3 items-center">
+                <input
+                  type="date"
+                  value={entry.date}
+                  onChange={(e) => {
+                    const updated = [...otherCenterEntries];
+                    updated[index] = { ...updated[index], date: e.target.value };
+                    setOtherCenterEntries(updated);
+                  }}
+                  disabled={readOnly}
+                  className="rounded-md border px-3 py-2 text-sm"
+                />
+                <select
+                  value={entry.center}
+                  onChange={(e) => {
+                    const updated = [...otherCenterEntries];
+                    updated[index] = { ...updated[index], center: e.target.value };
+                    setOtherCenterEntries(updated);
+                  }}
+                  disabled={readOnly}
+                  className="rounded-md border px-3 py-2 text-sm"
+                >
+                  {(["FRIBOURG", "LAUSANNE", "GENEVA"] as const)
+                    .filter((c) => c !== center)
+                    .map((c) => (
+                      <option key={c} value={c}>
+                        {t.centers[c]}
+                      </option>
+                    ))}
+                </select>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOtherCenterEntries(otherCenterEntries.filter((_, i) => i !== index))
+                    }
+                    className="text-sm text-red-600 hover:text-red-800 px-2 py-2"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+            ))}
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={() => {
+                  const otherCenters = (["FRIBOURG", "LAUSANNE", "GENEVA"] as const).filter(
+                    (c) => c !== center
+                  );
+                  setOtherCenterEntries([
+                    ...otherCenterEntries,
+                    { date: "", center: otherCenters[0] },
+                  ]);
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                + {t.rma.otherCenterAdd}
+              </button>
+            )}
           </div>
         )}
       </div>
