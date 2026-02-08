@@ -258,17 +258,6 @@ export function RmaForm({
     }
   }
 
-  function addAbsenceDetail() {
-    setAbsenceDetails([
-      ...absenceDetails,
-      { category: "JOB_SEARCH", date: "", description: "" },
-    ]);
-  }
-
-  function removeAbsenceDetail(index: number) {
-    setAbsenceDetails(absenceDetails.filter((_, i) => i !== index));
-  }
-
   function updateAbsenceDetail(
     index: number,
     field: keyof AbsenceDetail,
@@ -330,155 +319,103 @@ export function RmaForm({
         />
       </div>
 
-      {/* Absence / Mandate Details */}
+      {/* G Details — Autres absences justifiées */}
       <div className="rounded-lg border bg-white p-6">
         <h3 className="mb-4 font-semibold">{t.rma.absences}</h3>
 
-        {absenceDetails.length === 0 && mandateDetails.length === 0 ? (
+        {absenceDetails.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t.common.noResults}
           </p>
         ) : (
           <div className="space-y-3">
-            {[
-              ...absenceDetails.map((d, i) => ({
-                type: "G" as const,
-                idx: i,
-                sortDay: d.day ?? 999,
-                sortHalf: d.halfDay === "AM" ? 0 : d.halfDay === "PM" ? 1 : 0,
-              })),
-              ...mandateDetails.map((d, i) => ({
-                type: "M" as const,
-                idx: i,
-                sortDay: d.day,
-                sortHalf: d.halfDay === "AM" ? 0 : 1,
-              })),
-            ]
-              .sort((a, b) => a.sortDay - b.sortDay || a.sortHalf - b.sortHalf)
-              .map((row) => {
-                if (row.type === "M") {
-                  const detail = mandateDetails[row.idx];
-                  return (
-                    <div key={`M-${row.idx}`} className="flex gap-3 items-center">
-                      <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
-                        {t.common.day} {detail.day} {detail.halfDay}
-                      </span>
-                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold bg-purple-100 text-purple-800">
-                        M
-                      </span>
-                      <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
-                        {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
-                      </span>
-                      {detail.location === "onsite" && (
-                        <input
-                          type="text"
-                          value={detail.locality}
-                          onChange={(e) =>
-                            updateMandateDetail(row.idx, "locality", e.target.value)
-                          }
-                          disabled={readOnly}
-                          placeholder={t.rma.mandateLocality}
-                          className="flex-1 rounded-md border px-3 py-2 text-sm"
-                        />
-                      )}
-                    </div>
-                  );
-                }
-                const detail = absenceDetails[row.idx];
-                return (
-                  <div key={`G-${row.idx}`} className="flex gap-3 items-center">
-                    {detail.day != null && (
-                      <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
-                        {t.common.day} {detail.day} {detail.halfDay}
-                      </span>
-                    )}
-                    <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-800">
-                      G
+            {[...absenceDetails]
+              .map((d, i) => ({ detail: d, idx: i }))
+              .sort((a, b) => {
+                const dayA = a.detail.day ?? 999;
+                const dayB = b.detail.day ?? 999;
+                if (dayA !== dayB) return dayA - dayB;
+                const hdA = a.detail.halfDay === "AM" ? 0 : 1;
+                const hdB = b.detail.halfDay === "AM" ? 0 : 1;
+                return hdA - hdB;
+              })
+              .map(({ detail, idx }) => (
+                <div key={`G-${idx}`} className="flex gap-3 items-center">
+                  {detail.day != null && (
+                    <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
+                      {t.common.day} {detail.day} {detail.halfDay}
                     </span>
-                    <select
-                      value={detail.category}
-                      onChange={(e) =>
-                        updateAbsenceDetail(row.idx, "category", e.target.value)
-                      }
-                      disabled={readOnly}
-                      className="rounded-md border px-3 py-2 text-sm"
-                    >
-                      <option value="JOB_SEARCH">{t.rma.absenceCategories.JOB_SEARCH}</option>
-                      <option value="DOCTOR_VISIT">{t.rma.absenceCategories.DOCTOR_VISIT}</option>
-                      <option value="ORP_APPOINTMENT">{t.rma.absenceCategories.ORP_APPOINTMENT}</option>
-                      <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
-                      <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={detail.description}
-                      onChange={(e) =>
-                        updateAbsenceDetail(row.idx, "description", e.target.value)
-                      }
-                      disabled={readOnly}
-                      placeholder={t.rma.description}
-                      className="flex-1 rounded-md border px-3 py-2 text-sm"
-                    />
-                  </div>
-                );
-              })}
+                  )}
+                  <select
+                    value={detail.category}
+                    onChange={(e) =>
+                      updateAbsenceDetail(idx, "category", e.target.value)
+                    }
+                    disabled={readOnly}
+                    className="rounded-md border px-3 py-2 text-sm"
+                  >
+                    <option value="JOB_SEARCH">{t.rma.absenceCategories.JOB_SEARCH}</option>
+                    <option value="DOCTOR_VISIT">{t.rma.absenceCategories.DOCTOR_VISIT}</option>
+                    <option value="ORP_APPOINTMENT">{t.rma.absenceCategories.ORP_APPOINTMENT}</option>
+                    <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
+                    <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={detail.description}
+                    onChange={(e) =>
+                      updateAbsenceDetail(idx, "description", e.target.value)
+                    }
+                    disabled={readOnly}
+                    placeholder={t.rma.description}
+                    className="flex-1 rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+              ))}
           </div>
         )}
       </div>
 
-      {/* Mandate Details */}
+      {/* M Details — Mandat externe */}
       <div className="rounded-lg border bg-white p-6">
         <h3 className="mb-4 font-semibold">{t.rma.mandate}</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.mandateEmployer}
-            </label>
-            <input
-              type="text"
-              value={mandateEmployer}
-              onChange={(e) => setMandateEmployer(e.target.value)}
-              disabled={readOnly}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
+
+        {mandateDetails.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t.common.noResults}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {[...mandateDetails]
+              .map((d, i) => ({ detail: d, idx: i }))
+              .sort((a, b) => {
+                if (a.detail.day !== b.detail.day) return a.detail.day - b.detail.day;
+                return a.detail.halfDay === "AM" ? -1 : 1;
+              })
+              .map(({ detail, idx }) => (
+                <div key={`M-${idx}`} className="flex gap-3 items-center">
+                  <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
+                    {t.common.day} {detail.day} {detail.halfDay}
+                  </span>
+                  <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
+                    {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
+                  </span>
+                  {detail.location === "onsite" && (
+                    <input
+                      type="text"
+                      value={detail.locality}
+                      onChange={(e) =>
+                        updateMandateDetail(idx, "locality", e.target.value)
+                      }
+                      disabled={readOnly}
+                      placeholder={t.rma.mandateLocality}
+                      className="flex-1 rounded-md border px-3 py-2 text-sm"
+                    />
+                  )}
+                </div>
+              ))}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.mandateRole}
-            </label>
-            <input
-              type="text"
-              value={mandateRole}
-              onChange={(e) => setMandateRole(e.target.value)}
-              disabled={readOnly}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.mandateStartDate}
-            </label>
-            <input
-              type="date"
-              value={mandateStartDate}
-              onChange={(e) => setMandateStartDate(e.target.value)}
-              disabled={readOnly}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.mandateEndDate}
-            </label>
-            <input
-              type="date"
-              value={mandateEndDate}
-              onChange={(e) => setMandateEndDate(e.target.value)}
-              disabled={readOnly}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Feedback Section */}
