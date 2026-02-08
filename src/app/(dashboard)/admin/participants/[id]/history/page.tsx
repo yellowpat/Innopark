@@ -66,7 +66,7 @@ export default async function ParticipantHistoryPage({
         </div>
         {submissions.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-            {t.rma.noRma}
+            {t.rma.noSubmission}
           </div>
         ) : (
           <div className="divide-y">
