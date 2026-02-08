@@ -87,6 +87,10 @@ export function RmaCalendarGrid({
   const [activeCode, setActiveCode] = useState<RmaCode | "eraser" | null>(null);
   const [activeGCategory, setActiveGCategory] = useState<AbsenceCategory | null>(null);
   const [showGToolbarPicker, setShowGToolbarPicker] = useState(false);
+  const [activeMDetail, setActiveMDetail] = useState<{ location: MandateLocation; locality?: string } | null>(null);
+  const [showMToolbarPicker, setShowMToolbarPicker] = useState(false);
+  const [showMToolbarLocality, setShowMToolbarLocality] = useState(false);
+  const [toolbarMLocality, setToolbarMLocality] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const lastMandateLocalityRef = useRef("");
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -163,6 +167,9 @@ export function RmaCalendarGrid({
       onChange(newEntries);
       if (activeCode === "G" && activeGCategory) {
         onAbsenceDetail?.(day, halfDay, activeGCategory);
+      }
+      if (activeCode === "M" && activeMDetail) {
+        onMandateDetail?.(day, halfDay, activeMDetail.location, activeMDetail.locality);
       }
     }
   }
@@ -243,7 +250,12 @@ export function RmaCalendarGrid({
         applyBrush(day, halfDay);
         return;
       }
-      // G without category or M → open sub-picker
+      // M with detail already chosen → paint directly
+      if (activeCode === "M" && activeMDetail) {
+        applyBrush(day, halfDay);
+        return;
+      }
+      // G without category or M without detail → open sub-picker
       if (activeCode === "G" || activeCode === "M") {
         const rect = e.currentTarget.getBoundingClientRect();
         setPickerTarget({ day, halfDay, rect });
@@ -263,9 +275,9 @@ export function RmaCalendarGrid({
   function handleCellMouseDown(day: number, halfDay: HalfDay) {
     if (!activeCode || readOnly) return;
     if (holidays.has(day) || isWeekend(year, month, day)) return;
-    // G without category or M excluded from drag
+    // G without category or M without detail excluded from drag
     if (activeCode === "G" && !activeGCategory) return;
-    if (activeCode === "M") return;
+    if (activeCode === "M" && !activeMDetail) return;
     setIsDragging(true);
     applyBrush(day, halfDay);
   }
@@ -274,7 +286,7 @@ export function RmaCalendarGrid({
     if (!isDragging || !activeCode || readOnly) return;
     if (holidays.has(day) || isWeekend(year, month, day)) return;
     if (activeCode === "G" && !activeGCategory) return;
-    if (activeCode === "M") return;
+    if (activeCode === "M" && !activeMDetail) return;
     applyBrush(day, halfDay);
   }
 
@@ -447,12 +459,32 @@ export function RmaCalendarGrid({
                       setShowGToolbarPicker(false);
                     } else {
                       setShowGToolbarPicker(true);
+                      setShowMToolbarPicker(false);
+                      setShowMToolbarLocality(false);
+                      setActiveMDetail(null);
                       setActiveCode(null);
                       setActiveGCategory(null);
+                    }
+                  } else if (code === "M") {
+                    if (activeCode === "M") {
+                      setActiveCode(null);
+                      setActiveMDetail(null);
+                      setShowMToolbarPicker(false);
+                      setShowMToolbarLocality(false);
+                    } else {
+                      setShowMToolbarPicker(true);
+                      setShowMToolbarLocality(false);
+                      setShowGToolbarPicker(false);
+                      setActiveGCategory(null);
+                      setActiveCode(null);
+                      setActiveMDetail(null);
                     }
                   } else {
                     setShowGToolbarPicker(false);
                     setActiveGCategory(null);
+                    setShowMToolbarPicker(false);
+                    setShowMToolbarLocality(false);
+                    setActiveMDetail(null);
                     setActiveCode(activeCode === code ? null : code);
                   }
                 }}
@@ -472,6 +504,9 @@ export function RmaCalendarGrid({
               onClick={() => {
                 setShowGToolbarPicker(false);
                 setActiveGCategory(null);
+                setShowMToolbarPicker(false);
+                setShowMToolbarLocality(false);
+                setActiveMDetail(null);
                 setActiveCode(activeCode === "eraser" ? null : "eraser");
               }}
               title={t.common.remove}
@@ -484,7 +519,13 @@ export function RmaCalendarGrid({
               G — {t.rma.absenceCategories[activeGCategory]}
             </span>
           )}
-          {(activeCode || showGToolbarPicker) && (
+          {activeCode === "M" && activeMDetail && (
+            <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-0.5">
+              M — {activeMDetail.location === "remote" ? t.rma.remote : t.rma.onsite}
+              {activeMDetail.locality ? ` (${activeMDetail.locality})` : ""}
+            </span>
+          )}
+          {(activeCode || showGToolbarPicker || showMToolbarPicker) && (
             <button
               type="button"
               className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
@@ -492,6 +533,9 @@ export function RmaCalendarGrid({
                 setActiveCode(null);
                 setActiveGCategory(null);
                 setShowGToolbarPicker(false);
+                setActiveMDetail(null);
+                setShowMToolbarPicker(false);
+                setShowMToolbarLocality(false);
               }}
             >
               {t.common.cancel}
@@ -517,6 +561,75 @@ export function RmaCalendarGrid({
                 {t.rma.absenceCategories[cat]}
               </button>
             ))}
+          </div>
+        )}
+        {showMToolbarPicker && !activeMDetail && !showMToolbarLocality && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs text-muted-foreground font-medium">
+              M —
+            </span>
+            <button
+              type="button"
+              className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1 text-xs text-purple-800 hover:bg-purple-100 transition-colors"
+              onClick={() => {
+                setActiveMDetail({ location: "remote" });
+                setActiveCode("M" as RmaCode);
+                setShowMToolbarPicker(false);
+              }}
+            >
+              {t.rma.remote}
+            </button>
+            <button
+              type="button"
+              className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1 text-xs text-purple-800 hover:bg-purple-100 transition-colors"
+              onClick={() => {
+                setShowMToolbarLocality(true);
+                setToolbarMLocality(lastMandateLocalityRef.current);
+              }}
+            >
+              {t.rma.onsite}
+            </button>
+          </div>
+        )}
+        {showMToolbarPicker && showMToolbarLocality && !activeMDetail && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs text-muted-foreground font-medium">
+              M — {t.rma.onsite} —
+            </span>
+            <input
+              type="text"
+              value={toolbarMLocality}
+              onChange={(e) => setToolbarMLocality(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (toolbarMLocality.trim()) {
+                    lastMandateLocalityRef.current = toolbarMLocality.trim();
+                  }
+                  setActiveMDetail({ location: "onsite", locality: toolbarMLocality.trim() || undefined });
+                  setActiveCode("M" as RmaCode);
+                  setShowMToolbarPicker(false);
+                  setShowMToolbarLocality(false);
+                }
+              }}
+              autoFocus
+              className="rounded border px-2 py-1 text-xs w-40"
+              placeholder={t.rma.mandateLocality}
+            />
+            <button
+              type="button"
+              className="rounded border border-purple-300 bg-purple-50 px-2.5 py-1 text-xs text-purple-800 hover:bg-purple-100 transition-colors"
+              onClick={() => {
+                if (toolbarMLocality.trim()) {
+                  lastMandateLocalityRef.current = toolbarMLocality.trim();
+                }
+                setActiveMDetail({ location: "onsite", locality: toolbarMLocality.trim() || undefined });
+                setActiveCode("M" as RmaCode);
+                setShowMToolbarPicker(false);
+                setShowMToolbarLocality(false);
+              }}
+            >
+              {t.common.confirm}
+            </button>
           </div>
         )}
         </div>
