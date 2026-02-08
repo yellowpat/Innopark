@@ -392,17 +392,10 @@ export function RmaForm({
                   <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
                     {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
                   </span>
-                  {detail.location === "onsite" && (
-                    <input
-                      type="text"
-                      value={detail.locality}
-                      onChange={(e) =>
-                        updateMandateDetail(idx, "locality", e.target.value)
-                      }
-                      disabled={readOnly}
-                      placeholder={t.rma.mandateLocality}
-                      className="flex-1 rounded-md border px-3 py-2 text-sm"
-                    />
+                  {detail.location === "onsite" && detail.locality && (
+                    <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
+                      {t.rma.mandateLocality}: {detail.locality}
+                    </span>
                   )}
                 </div>
               ))}
