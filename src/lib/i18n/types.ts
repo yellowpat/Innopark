@@ -179,6 +179,10 @@ export interface Dictionary {
     rmaAlreadyCreated: string;
     changesQuestion: string;
     changesAdd: string;
+    supportQuestion: string;
+    supportVeryWell: string;
+    supportWell: string;
+    supportNotEnough: string;
     noSubmission: string;
     createFirst: string;
     history: string;

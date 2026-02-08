@@ -114,6 +114,7 @@ export function RmaForm({
   >([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [changeDates, setChangeDates] = useState<string[]>([]);
+  const [supportRating, setSupportRating] = useState("");
 
   const readOnly = existingStatus === "SUBMITTED";
 
@@ -203,6 +204,7 @@ export function RmaForm({
         hasChanges && changeDates.length > 0
           ? changeDates
           : undefined,
+      supportRating: supportRating || undefined,
     };
   }
 
@@ -593,6 +595,29 @@ export function RmaForm({
             )}
           </div>
         )}
+      </div>
+
+      {/* Support Rating Section */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="mb-4 font-semibold">{t.rma.supportQuestion}</h3>
+        <div className="flex gap-4">
+          {([
+            { value: "very_well", label: t.rma.supportVeryWell },
+            { value: "well", label: t.rma.supportWell },
+            { value: "not_enough", label: t.rma.supportNotEnough },
+          ] as const).map((option) => (
+            <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="supportRating"
+                checked={supportRating === option.value}
+                onChange={() => setSupportRating(option.value)}
+                disabled={readOnly}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Feedback Section */}
