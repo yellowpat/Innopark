@@ -10,13 +10,13 @@ export default async function ParticipantsPage() {
   if (session.user.role === "PARTICIPANT") redirect("/dashboard");
   const t = await getTranslations();
 
-  const centerFilter =
+  const where =
     session.user.role === "CENTER_STAFF"
-      ? { primaryCenter: session.user.primaryCenter }
+      ? { primaryCenter: session.user.primaryCenter, active: true, role: "PARTICIPANT" as const }
       : {};
 
   const users = await prisma.user.findMany({
-    where: { ...centerFilter },
+    where,
     select: {
       id: true,
       name: true,
