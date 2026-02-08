@@ -43,9 +43,6 @@ interface RmaFormProps {
     mandateEndDate?: string | null;
     feedbackQ5?: string | null;
     feedbackQ6?: string | null;
-    feedbackQ7?: string | null;
-    feedbackQ8?: string | null;
-    feedbackQ9?: string | null;
     absenceDetails?: AbsenceDetail[];
   };
 }
@@ -93,15 +90,6 @@ export function RmaForm({
   );
   const [feedbackQ6, setFeedbackQ6] = useState(
     existingData?.feedbackQ6 || ""
-  );
-  const [feedbackQ7, setFeedbackQ7] = useState(
-    existingData?.feedbackQ7 || ""
-  );
-  const [feedbackQ8, setFeedbackQ8] = useState(
-    existingData?.feedbackQ8 || ""
-  );
-  const [feedbackQ9, setFeedbackQ9] = useState(
-    existingData?.feedbackQ9 || ""
   );
 
   const [absenceDetails, setAbsenceDetails] = useState<AbsenceDetail[]>(
@@ -176,9 +164,6 @@ export function RmaForm({
       mandateEndDate: mandateEndDate || undefined,
       feedbackQ5: feedbackQ5 || undefined,
       feedbackQ6: feedbackQ6 || undefined,
-      feedbackQ7: feedbackQ7 || undefined,
-      feedbackQ8: feedbackQ8 || undefined,
-      feedbackQ9: feedbackQ9 || undefined,
       absenceDetails:
         absenceDetails.length > 0
           ? absenceDetails.map((a) => ({
@@ -643,42 +628,6 @@ export function RmaForm({
             <textarea
               value={feedbackQ6}
               onChange={(e) => setFeedbackQ6(e.target.value)}
-              disabled={readOnly}
-              rows={2}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.feedbackQ7}
-            </label>
-            <textarea
-              value={feedbackQ7}
-              onChange={(e) => setFeedbackQ7(e.target.value)}
-              disabled={readOnly}
-              rows={2}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.feedbackQ8}
-            </label>
-            <textarea
-              value={feedbackQ8}
-              onChange={(e) => setFeedbackQ8(e.target.value)}
-              disabled={readOnly}
-              rows={2}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.rma.feedbackQ9}
-            </label>
-            <textarea
-              value={feedbackQ9}
-              onChange={(e) => setFeedbackQ9(e.target.value)}
               disabled={readOnly}
               rows={2}
               className="w-full rounded-md border px-3 py-2 text-sm"

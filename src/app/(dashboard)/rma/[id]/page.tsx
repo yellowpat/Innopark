@@ -71,9 +71,6 @@ export default async function RmaDetailPage({
           mandateEndDate: submission.mandateEndDate?.toISOString().split("T")[0],
           feedbackQ5: submission.feedbackQ5,
           feedbackQ6: submission.feedbackQ6,
-          feedbackQ7: submission.feedbackQ7,
-          feedbackQ8: submission.feedbackQ8,
-          feedbackQ9: submission.feedbackQ9,
           absenceDetails: submission.absenceDetails.map((a) => ({
             category: a.category,
             date: new Date(a.date).toISOString().split("T")[0],

@@ -140,9 +140,6 @@ export interface Dictionary {
     feedback: string;
     feedbackQ5: string;
     feedbackQ6: string;
-    feedbackQ7: string;
-    feedbackQ8: string;
-    feedbackQ9: string;
     absences: string;
     absenceCategory: string;
     absenceDate: string;

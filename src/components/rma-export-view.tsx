@@ -82,9 +82,6 @@ export function RmaExportView({ submission, userName }: RmaExportViewProps) {
     submission.mandateRole ? `${t.rma.mandateRole}:\t${submission.mandateRole}` : "",
     submission.feedbackQ5 ? `${t.rma.feedbackQ5}:\t${submission.feedbackQ5}` : "",
     submission.feedbackQ6 ? `${t.rma.feedbackQ6}:\t${submission.feedbackQ6}` : "",
-    submission.feedbackQ7 ? `${t.rma.feedbackQ7}:\t${submission.feedbackQ7}` : "",
-    submission.feedbackQ8 ? `${t.rma.feedbackQ8}:\t${submission.feedbackQ8}` : "",
-    submission.feedbackQ9 ? `${t.rma.feedbackQ9}:\t${submission.feedbackQ9}` : "",
   ]
     .filter(Boolean)
     .join("\n");

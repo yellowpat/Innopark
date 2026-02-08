@@ -129,24 +129,6 @@ export default async function AdminRmaDetailPage({
                 <p className="text-muted-foreground">{submission.feedbackQ6}</p>
               </div>
             )}
-            {submission.feedbackQ7 && (
-              <div>
-                <p className="font-medium">{t.rma.feedbackQ7}:</p>
-                <p className="text-muted-foreground">{submission.feedbackQ7}</p>
-              </div>
-            )}
-            {submission.feedbackQ8 && (
-              <div>
-                <p className="font-medium">{t.rma.feedbackQ8}:</p>
-                <p className="text-muted-foreground">{submission.feedbackQ8}</p>
-              </div>
-            )}
-            {submission.feedbackQ9 && (
-              <div>
-                <p className="font-medium">{t.rma.feedbackQ9}:</p>
-                <p className="text-muted-foreground">{submission.feedbackQ9}</p>
-              </div>
-            )}
           </div>
         </div>
       )}
