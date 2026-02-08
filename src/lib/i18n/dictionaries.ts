@@ -47,8 +47,8 @@ const fr: Dictionary = {
   },
   nav: {
     dashboard: "Tableau de bord",
-    myRma: "Mon RMA",
-    myAttendance: "Ma présence",
+    myRma: "RMA",
+    myAttendance: "Présence",
     participants: "Participants",
     rmaOverview: "RMA - Vue d'ensemble",
     attendance: "Présences",
@@ -404,8 +404,8 @@ const en: Dictionary = {
   },
   nav: {
     dashboard: "Dashboard",
-    myRma: "My RMA",
-    myAttendance: "My Attendance",
+    myRma: "RMA",
+    myAttendance: "Attendance",
     participants: "Participants",
     rmaOverview: "RMA Overview",
     attendance: "Attendance",
@@ -761,8 +761,8 @@ const de: Dictionary = {
   },
   nav: {
     dashboard: "Dashboard",
-    myRma: "Mein RMA",
-    myAttendance: "Meine Anwesenheit",
+    myRma: "RMA",
+    myAttendance: "Anwesenheit",
     participants: "Teilnehmer",
     rmaOverview: "RMA-Übersicht",
     attendance: "Anwesenheit",
