@@ -361,16 +361,6 @@ export function RmaForm({
                     <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
                     <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
                   </select>
-                  <input
-                    type="text"
-                    value={detail.description}
-                    onChange={(e) =>
-                      updateAbsenceDetail(idx, "description", e.target.value)
-                    }
-                    disabled={readOnly}
-                    placeholder={t.rma.description}
-                    className="flex-1 rounded-md border px-3 py-2 text-sm"
-                  />
                 </div>
               ))}
           </div>
