@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PARTICIPANT
+  CENTER_STAFF
+  ADMIN
+}
+
+enum Center {
+  FRIBOURG
+  LAUSANNE
+  GENEVA
+}
+
+enum Canton {
+  FR
+  VD
+  GE
+}
+
+enum RmaStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REVISION_REQUESTED
+}
+
+enum HalfDay {
+  AM
+  PM
+}
+
+enum RmaCode {
+  X // Present at center
+  O // Online/remote work
+  A // Absent without justification
+  B // Sick leave (with certificate)
+  C // Sick leave (without certificate)
+  D // Accident
+  E // Military/civil service
+  F // Maternity/paternity
+  G // Job search activities
+  H // Public holiday
+  I // Vacation/personal day
+  M // Mandate/external assignment
+}
+
+enum AbsenceCategory {
+  JOB_SEARCH
+  DOCTOR_VISIT
+  ORP_APPOINTMENT
+  JOB_INTERVIEW
+  OTHER
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          Role     @default(PARTICIPANT)
+  primaryCenter Center   @default(FRIBOURG)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rmaSubmissions   RmaSubmission[]
+  attendanceRecords AttendanceRecord[]
+
+  @@map("users")
+}
+
+model RmaSubmission {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year      Int
+  month     Int       // 1-12
+  status    RmaStatus @default(DRAFT)
+  center    Center
+
+  // Mandate details
+  mandateEmployer   String?
+  mandateRole       String?
+  mandateStartDate  DateTime?
+  mandateEndDate    DateTime?
+
+  // Feedback fields (Q5-Q9 from RMA form)
+  feedbackQ5        String?   // Job search activities description
+  feedbackQ6        String?   // Training/courses attended
+  feedbackQ7        String?   // Difficulties encountered
+  feedbackQ8        String?   // Support needed
+  feedbackQ9        String?   // Other comments
+
+  // Admin feedback
+  adminNotes        String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+
+  submittedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  entries           RmaEntry[]
+  absenceDetails    RmaAbsenceDetail[]
+
+  @@unique([userId, year, month])
+  @@map("rma_submissions")
+}
+
+model RmaEntry {
+  id           String        @id @default(cuid())
+  submissionId String
+  submission   RmaSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  day          Int           // 1-31
+  halfDay      HalfDay
+  code         RmaCode
+
+  @@unique([submissionId, day, halfDay])
+  @@map("rma_entries")
+}
+
+model RmaAbsenceDetail {
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   RmaSubmission    @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  category     AbsenceCategory
+  date         DateTime
+  description  String?
+
+  @@map("rma_absence_details")
+}
+
+model AttendanceRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime @db.Date
+  halfDay    HalfDay
+  center     Center
+  actualCode RmaCode
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, date, halfDay])
+  @@map("attendance_records")
+}
+
+model PublicHoliday {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  name        String
+  canton      Canton
+  year        Int
+
+  @@unique([date, canton])
+  @@map("public_holidays")
+}
