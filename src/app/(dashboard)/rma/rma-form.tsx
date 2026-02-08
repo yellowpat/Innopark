@@ -112,6 +112,8 @@ export function RmaForm({
   const [otherCenterEntries, setOtherCenterEntries] = useState<
     { date: string; center: string }[]
   >([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [changeDates, setChangeDates] = useState<string[]>([]);
 
   const readOnly = existingStatus === "SUBMITTED";
 
@@ -196,6 +198,10 @@ export function RmaForm({
       otherCenterEntries:
         otherCenterWork && otherCenterEntries.length > 0
           ? otherCenterEntries
+          : undefined,
+      changeDates:
+        hasChanges && changeDates.length > 0
+          ? changeDates
           : undefined,
     };
   }
@@ -511,6 +517,78 @@ export function RmaForm({
                 className="text-sm text-primary hover:underline"
               >
                 + {t.rma.otherCenterAdd}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Changes Section */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="mb-4 font-semibold">
+          {t.rma.changesQuestion}
+        </h3>
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="changes"
+              checked={!hasChanges}
+              onChange={() => {
+                setHasChanges(false);
+                setChangeDates([]);
+              }}
+              disabled={readOnly}
+            />
+            {t.common.no}
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="radio"
+              name="changes"
+              checked={hasChanges}
+              onChange={() => setHasChanges(true)}
+              disabled={readOnly}
+            />
+            {t.common.yes}
+          </label>
+        </div>
+
+        {hasChanges && (
+          <div className="space-y-3">
+            {changeDates.map((date, index) => (
+              <div key={index} className="flex gap-3 items-center">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => {
+                    const updated = [...changeDates];
+                    updated[index] = e.target.value;
+                    setChangeDates(updated);
+                  }}
+                  disabled={readOnly}
+                  className="rounded-md border px-3 py-2 text-sm"
+                />
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setChangeDates(changeDates.filter((_, i) => i !== index))
+                    }
+                    className="text-sm text-red-600 hover:text-red-800 px-2 py-2"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+            ))}
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={() => setChangeDates([...changeDates, ""])}
+                className="text-sm text-primary hover:underline"
+              >
+                + {t.rma.changesAdd}
               </button>
             )}
           </div>
