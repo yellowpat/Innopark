@@ -328,41 +328,38 @@ export function RmaForm({
             {t.common.noResults}
           </p>
         ) : (
-          <div className="space-y-3">
-            {[...absenceDetails]
-              .map((d, i) => ({ detail: d, idx: i }))
-              .sort((a, b) => {
-                const dayA = a.detail.day ?? 999;
-                const dayB = b.detail.day ?? 999;
-                if (dayA !== dayB) return dayA - dayB;
-                const hdA = a.detail.halfDay === "AM" ? 0 : 1;
-                const hdB = b.detail.halfDay === "AM" ? 0 : 1;
-                return hdA - hdB;
-              })
-              .map(({ detail, idx }) => (
-                <div key={`G-${idx}`} className="flex gap-3 items-center">
-                  {detail.day != null && (
-                    <span className="text-xs font-medium text-gray-500 min-w-[10rem] shrink-0">
-                      {String(detail.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
-                      {detail.halfDay === "AM" ? t.common.morning : t.common.afternoon}
+          <div className="space-y-2">
+            {(() => {
+              const grouped = new Map<string, { day: number; halfDay: string }[]>();
+              for (const d of absenceDetails) {
+                if (d.day == null) continue;
+                const key = d.category;
+                if (!grouped.has(key)) grouped.set(key, []);
+                grouped.get(key)!.push({ day: d.day, halfDay: d.halfDay || "AM" });
+              }
+              Array.from(grouped.values()).forEach((dates) => {
+                dates.sort((a: { day: number; halfDay: string }, b: { day: number; halfDay: string }) => a.day - b.day || (a.halfDay === "AM" ? -1 : 1));
+              });
+              const categoryLabels: Record<string, string> = {
+                JOB_SEARCH: t.rma.absenceCategories.JOB_SEARCH,
+                DOCTOR_VISIT: t.rma.absenceCategories.DOCTOR_VISIT,
+                ORP_APPOINTMENT: t.rma.absenceCategories.ORP_APPOINTMENT,
+                JOB_INTERVIEW: t.rma.absenceCategories.JOB_INTERVIEW,
+                OTHER: t.rma.absenceCategories.OTHER,
+              };
+              return Array.from(grouped.entries()).map(([category, dates]) => (
+                <div key={category} className="flex flex-wrap gap-x-2 gap-y-1 items-baseline text-sm">
+                  <span className="font-medium">{categoryLabels[category] || category}:</span>
+                  {dates.map((d, i) => (
+                    <span key={`${d.day}-${d.halfDay}`} className="text-xs text-gray-600">
+                      {String(d.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
+                      {d.halfDay === "AM" ? t.common.morning : t.common.afternoon}
+                      {i < dates.length - 1 && ","}
                     </span>
-                  )}
-                  <select
-                    value={detail.category}
-                    onChange={(e) =>
-                      updateAbsenceDetail(idx, "category", e.target.value)
-                    }
-                    disabled={readOnly}
-                    className="rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="JOB_SEARCH">{t.rma.absenceCategories.JOB_SEARCH}</option>
-                    <option value="DOCTOR_VISIT">{t.rma.absenceCategories.DOCTOR_VISIT}</option>
-                    <option value="ORP_APPOINTMENT">{t.rma.absenceCategories.ORP_APPOINTMENT}</option>
-                    <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
-                    <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
-                  </select>
+                  ))}
                 </div>
-              ))}
+              ));
+            })()}
           </div>
         )}
       </div>
