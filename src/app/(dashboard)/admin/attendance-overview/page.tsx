@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { RMA_CODE_COLORS } from "@/lib/constants";
 import { getLocale, getTranslations } from "@/lib/i18n/server";
@@ -22,6 +23,14 @@ export default async function AttendanceOverviewPage({
   const t = getTranslations();
   const locale = getLocale();
 
+  let effectiveRole: string = session.user.role;
+  if (session.user.role === "ADMIN") {
+    const impersonate = cookies().get("innopark-impersonate-role")?.value;
+    if (impersonate === "CENTER_STAFF" || impersonate === "PARTICIPANT") {
+      effectiveRole = impersonate;
+    }
+  }
+
   const now = new Date();
   const year = searchParams.year ? parseInt(searchParams.year) : now.getFullYear();
   const month = searchParams.month ? parseInt(searchParams.month) : now.getMonth() + 1;
@@ -33,10 +42,11 @@ export default async function AttendanceOverviewPage({
     },
   };
 
-  if (session.user.role === "CENTER_STAFF") {
+  if (effectiveRole === "CENTER_STAFF") {
     where.center = session.user.primaryCenter;
+  } else if (searchParams.center) {
+    where.center = searchParams.center;
   }
-  if (searchParams.center) where.center = searchParams.center;
 
   const records = await prisma.attendanceRecord.findMany({
     where,

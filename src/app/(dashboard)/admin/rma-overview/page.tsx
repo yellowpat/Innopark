@@ -1,9 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/lib/i18n/server";
 import Link from "next/link";
-import type { Center } from "@prisma/client";
+import type { Center, Role } from "@prisma/client";
 import { RmaListActions } from "./list-actions";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -23,9 +24,18 @@ export default async function RmaOverviewPage({
   if (session.user.role === "PARTICIPANT") redirect("/dashboard");
   const t = getTranslations();
 
+  // Determine effective role (admin may be impersonating staff)
+  let effectiveRole: Role = session.user.role;
+  if (session.user.role === "ADMIN") {
+    const impersonate = cookies().get("innopark-impersonate-role")?.value;
+    if (impersonate === "CENTER_STAFF" || impersonate === "PARTICIPANT") {
+      effectiveRole = impersonate;
+    }
+  }
+
   const where: Record<string, unknown> = {};
 
-  if (session.user.role === "CENTER_STAFF") {
+  if (effectiveRole === "CENTER_STAFF") {
     where.center = session.user.primaryCenter;
   } else if (searchParams.center) {
     where.center = searchParams.center;
@@ -49,7 +59,7 @@ export default async function RmaOverviewPage({
 
   // Find active participants who haven't created their RMA for the current month
   const centerFilter =
-    session.user.role === "CENTER_STAFF"
+    effectiveRole === "CENTER_STAFF"
       ? session.user.primaryCenter
       : (searchParams.center as Center | undefined) || undefined;
 
