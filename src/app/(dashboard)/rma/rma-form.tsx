@@ -373,29 +373,40 @@ export function RmaForm({
             {t.common.noResults}
           </p>
         ) : (
-          <div className="space-y-3">
-            {[...mandateDetails]
-              .map((d, i) => ({ detail: d, idx: i }))
-              .sort((a, b) => {
-                if (a.detail.day !== b.detail.day) return a.detail.day - b.detail.day;
-                return a.detail.halfDay === "AM" ? -1 : 1;
-              })
-              .map(({ detail, idx }) => (
-                <div key={`M-${idx}`} className="flex gap-3 items-center">
-                  <span className="text-xs font-medium text-gray-500 min-w-[10rem] shrink-0">
-                    {String(detail.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
-                    {detail.halfDay === "AM" ? t.common.morning : t.common.afternoon}
-                  </span>
-                  <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
-                    {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
-                  </span>
-                  {detail.location === "onsite" && detail.locality && (
-                    <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
-                      {t.rma.mandateLocality}: {detail.locality}
+          <div className="space-y-2">
+            {(() => {
+              const grouped = new Map<string, { day: number; halfDay: string }[]>();
+              for (const d of mandateDetails) {
+                const key = d.location === "remote"
+                  ? "remote"
+                  : `onsite:${d.locality || ""}`;
+                if (!grouped.has(key)) grouped.set(key, []);
+                grouped.get(key)!.push({ day: d.day, halfDay: d.halfDay });
+              }
+              Array.from(grouped.values()).forEach((dates) => {
+                dates.sort((a: { day: number; halfDay: string }, b: { day: number; halfDay: string }) => a.day - b.day || (a.halfDay === "AM" ? -1 : 1));
+              });
+              return Array.from(grouped.entries()).map(([key, dates]) => {
+                const isRemote = key === "remote";
+                const locality = !isRemote ? key.replace("onsite:", "") : "";
+                return (
+                  <div key={key} className="flex flex-wrap gap-x-2 gap-y-1 items-baseline text-sm">
+                    <span className="font-medium">
+                      {isRemote ? t.rma.remote : t.rma.onsite}
+                      {!isRemote && locality && ` — ${t.rma.mandateLocality}: ${locality}`}
+                      :
                     </span>
-                  )}
-                </div>
-              ))}
+                    {dates.map((d, i) => (
+                      <span key={`${d.day}-${d.halfDay}`} className="text-xs text-gray-600">
+                        {String(d.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
+                        {d.halfDay === "AM" ? t.common.morning : t.common.afternoon}
+                        {i < dates.length - 1 && ","}
+                      </span>
+                    ))}
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
       </div>
