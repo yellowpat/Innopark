@@ -24,6 +24,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: Role[];
+  children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
@@ -44,12 +45,14 @@ const navItems: NavItem[] = [
     href: "/attendance",
     icon: CalendarDays,
     roles: ["PARTICIPANT"],
-  },
-  {
-    labelKey: "attendanceList",
-    href: "/attendance/history",
-    icon: List,
-    roles: ["PARTICIPANT"],
+    children: [
+      {
+        labelKey: "attendanceList",
+        href: "/attendance/history",
+        icon: List,
+        roles: ["PARTICIPANT"],
+      },
+    ],
   },
   {
     labelKey: "participants",
@@ -114,20 +117,55 @@ export function Sidebar({ role }: { role: Role }) {
         {filteredItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
+          const isParentActive =
+            isActive ||
+            item.children?.some(
+              (child) =>
+                pathname === child.href ||
+                pathname.startsWith(child.href + "/")
+            );
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {t.nav[item.labelKey]}
+              </Link>
+              {item.children && isParentActive && (
+                <div className="ml-4 mt-1 space-y-1">
+                  {item.children
+                    .filter((child) => child.roles.includes(role))
+                    .map((child) => {
+                      const isChildActive =
+                        pathname === child.href ||
+                        pathname.startsWith(child.href + "/");
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                            isChildActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          <child.icon className="h-3.5 w-3.5 shrink-0" />
+                          {t.nav[child.labelKey]}
+                        </Link>
+                      );
+                    })}
+                </div>
               )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {t.nav[item.labelKey]}
-            </Link>
+            </div>
           );
         })}
       </nav>
