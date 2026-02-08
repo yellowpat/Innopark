@@ -84,6 +84,7 @@ export function RmaCalendarGrid({
   const [showMSub, setShowMSub] = useState(false);
   const [showMLocality, setShowMLocality] = useState(false);
   const [mandateLocality, setMandateLocality] = useState("");
+  const [quickFillOpen, setQuickFillOpen] = useState(false);
   const [activeCode, setActiveCode] = useState<RmaCode | "eraser" | null>(null);
   const [activeGCategory, setActiveGCategory] = useState<AbsenceCategory | null>(null);
   const [showGToolbarPicker, setShowGToolbarPicker] = useState(false);
@@ -435,11 +436,31 @@ export function RmaCalendarGrid({
       {!readOnly && (
         <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <button
+            type="button"
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              quickFillOpen
+                ? "bg-primary text-white border-primary hover:bg-primary/90"
+                : "bg-white text-muted-foreground border-gray-200 hover:bg-gray-50 hover:text-foreground"
+            )}
+            onClick={() => {
+              const next = !quickFillOpen;
+              setQuickFillOpen(next);
+              if (!next) {
+                setActiveCode(null);
+                setActiveGCategory(null);
+                setShowGToolbarPicker(false);
+                setActiveMDetail(null);
+                setShowMToolbarPicker(false);
+                setShowMToolbarLocality(false);
+              }
+            }}
+          >
             <Paintbrush className="h-3.5 w-3.5" />
-            <span className="font-medium">Quick fill</span>
-          </div>
-          <div className="flex items-center gap-1">
+            Quick fill
+          </button>
+          {quickFillOpen && <div className="flex items-center gap-1">
             {SELECTABLE_CODES.map((code) => (
               <button
                 key={code}
@@ -513,7 +534,7 @@ export function RmaCalendarGrid({
             >
               <Eraser className="h-3.5 w-3.5 text-gray-600" />
             </button>
-          </div>
+          </div>}
           {activeCode === "G" && activeGCategory && (
             <span className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-0.5">
               G — {t.rma.absenceCategories[activeGCategory]}
