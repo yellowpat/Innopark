@@ -26,9 +26,10 @@ export default async function RmaOverviewPage({
 
   if (session.user.role === "CENTER_STAFF") {
     where.center = session.user.primaryCenter;
+  } else if (searchParams.center) {
+    where.center = searchParams.center;
   }
   if (searchParams.status) where.status = searchParams.status;
-  if (searchParams.center) where.center = searchParams.center;
   if (searchParams.year) where.year = parseInt(searchParams.year);
   if (searchParams.month) where.month = parseInt(searchParams.month);
 
