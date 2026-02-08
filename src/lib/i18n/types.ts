@@ -220,6 +220,7 @@ export interface Dictionary {
     selectPresence: string;
     confirmDelete: string;
     deleted: string;
+    updated: string;
   };
   centers: {
     FRIBOURG: string;

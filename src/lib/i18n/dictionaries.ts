@@ -219,6 +219,7 @@ const fr: Dictionary = {
     selectPresence: "Présence",
     confirmDelete: "Êtes-vous sûr de vouloir supprimer cette présence ?",
     deleted: "Présence supprimée",
+    updated: "Présence mise à jour",
   },
   centers: {
     FRIBOURG: "Fribourg",
@@ -577,6 +578,7 @@ const en: Dictionary = {
     selectPresence: "Presence",
     confirmDelete: "Are you sure you want to delete this attendance record?",
     deleted: "Attendance record deleted",
+    updated: "Attendance record updated",
   },
   centers: {
     FRIBOURG: "Fribourg",
@@ -935,6 +937,7 @@ const de: Dictionary = {
     selectPresence: "Anwesenheit",
     confirmDelete: "Möchten Sie diesen Anwesenheitseintrag wirklich löschen?",
     deleted: "Anwesenheitseintrag gelöscht",
+    updated: "Anwesenheitseintrag aktualisiert",
   },
   centers: {
     FRIBOURG: "Freiburg",
