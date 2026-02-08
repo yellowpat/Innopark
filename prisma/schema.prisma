@@ -110,6 +110,7 @@ model RmaSubmission {
 
   entries           RmaEntry[]
   absenceDetails    RmaAbsenceDetail[]
+  rmaFormations     RmaFormation[]
 
   @@unique([userId, year, month])
   @@map("rma_submissions")
@@ -152,6 +153,28 @@ model AttendanceRecord {
 
   @@unique([userId, date, halfDay])
   @@map("attendance_records")
+}
+
+model Formation {
+  id        String   @id @default(cuid())
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  rmaFormations RmaFormation[]
+
+  @@map("formations")
+}
+
+model RmaFormation {
+  id           String        @id @default(cuid())
+  submissionId String
+  submission   RmaSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  formationId  String
+  formation    Formation     @relation(fields: [formationId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, formationId])
+  @@map("rma_formations")
 }
 
 model PublicHoliday {

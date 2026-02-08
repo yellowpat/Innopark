@@ -60,6 +60,7 @@ export interface Dictionary {
     reconciliation: string;
     reports: string;
     holidays: string;
+    formations: string;
   };
   auth: {
     login: string;
@@ -191,6 +192,7 @@ export interface Dictionary {
     notYetCreated: string;
     recentAttendance: string;
     noAttendance: string;
+    trainingsQuestion: string;
   };
   attendance: {
     title: string;
@@ -315,6 +317,14 @@ export interface Dictionary {
       allCenters: string;
       noHolidays: string;
     };
+    formations: {
+      title: string;
+      addFormation: string;
+      deleteFormation: string;
+      confirmDelete: string;
+      noFormations: string;
+      formationName: string;
+    };
   };
   roleSwitcher: {
     admin: string;
@@ -344,6 +354,8 @@ export interface Dictionary {
     holidayCreated: string;
     holidayUpdated: string;
     holidayDeleted: string;
+    formationCreated: string;
+    formationDeleted: string;
     loginFailed: string;
     registrationFailed: string;
     emailAlreadyExists: string;

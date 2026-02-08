@@ -47,6 +47,7 @@ export const rmaSubmissionSchema = z.object({
       })
     )
     .optional(),
+  formationIds: z.array(z.string()).optional(),
 });
 
 export const attendanceSchema = z.object({

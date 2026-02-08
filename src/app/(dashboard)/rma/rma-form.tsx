@@ -45,6 +45,8 @@ interface RmaFormProps {
     feedbackQ6?: string | null;
     absenceDetails?: AbsenceDetail[];
   };
+  availableFormations?: { id: string; name: string }[];
+  existingFormationIds?: string[];
 }
 
 export function RmaForm({
@@ -56,6 +58,8 @@ export function RmaForm({
   existingEntries = [],
   existingStatus,
   existingData,
+  availableFormations = [],
+  existingFormationIds = [],
 }: RmaFormProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -103,6 +107,12 @@ export function RmaForm({
   const [hasChanges, setHasChanges] = useState(false);
   const [changeDates, setChangeDates] = useState<string[]>([]);
   const [supportRating, setSupportRating] = useState("");
+  const [hasTrainings, setHasTrainings] = useState(
+    existingFormationIds.length > 0
+  );
+  const [selectedFormationIds, setSelectedFormationIds] = useState<Set<string>>(
+    new Set(existingFormationIds)
+  );
 
   const readOnly = existingStatus === "SUBMITTED";
 
@@ -190,6 +200,10 @@ export function RmaForm({
           ? changeDates
           : undefined,
       supportRating: supportRating || undefined,
+      formationIds:
+        hasTrainings && selectedFormationIds.size > 0
+          ? Array.from(selectedFormationIds)
+          : undefined,
     };
   }
 
@@ -304,6 +318,65 @@ export function RmaForm({
           {t.months[month - 1]} {year} — {center}
         </h2>
       </div>
+
+      {/* Training / Formations Section */}
+      {availableFormations.length > 0 && (
+        <div className="rounded-lg border bg-white p-6">
+          <h3 className="mb-4 font-semibold">{t.rma.trainingsQuestion}</h3>
+          <div className="flex gap-4 mb-4">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="hasTrainings"
+                checked={!hasTrainings}
+                onChange={() => {
+                  setHasTrainings(false);
+                  setSelectedFormationIds(new Set());
+                }}
+                disabled={readOnly}
+              />
+              {t.common.no}
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="hasTrainings"
+                checked={hasTrainings}
+                onChange={() => setHasTrainings(true)}
+                disabled={readOnly}
+              />
+              {t.common.yes}
+            </label>
+          </div>
+
+          {hasTrainings && (
+            <div className="space-y-2 ml-1">
+              {availableFormations.map((formation) => (
+                <label
+                  key={formation.id}
+                  className="flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFormationIds.has(formation.id)}
+                    onChange={(e) => {
+                      const next = new Set(selectedFormationIds);
+                      if (e.target.checked) {
+                        next.add(formation.id);
+                      } else {
+                        next.delete(formation.id);
+                      }
+                      setSelectedFormationIds(next);
+                    }}
+                    disabled={readOnly}
+                  />
+                  {formation.name}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Calendar Grid */}
       <div className="rounded-lg border bg-white p-6">

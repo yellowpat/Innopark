@@ -98,12 +98,15 @@ export async function PUT(
       );
     }
 
-    const { entries, absenceDetails, ...submissionData } = parsed.data;
+    const { entries, absenceDetails, formationIds, ...submissionData } = parsed.data;
 
-    // Delete existing entries and absence details, then recreate
+    // Delete existing entries, absence details, and formations, then recreate
     await prisma.$transaction([
       prisma.rmaEntry.deleteMany({ where: { submissionId: params.id } }),
       prisma.rmaAbsenceDetail.deleteMany({
+        where: { submissionId: params.id },
+      }),
+      prisma.rmaFormation.deleteMany({
         where: { submissionId: params.id },
       }),
       prisma.rmaSubmission.update({
@@ -136,6 +139,13 @@ export async function PUT(
                   category: a.category,
                   date: new Date(a.date),
                   description: a.description,
+                })),
+              }
+            : undefined,
+          rmaFormations: formationIds
+            ? {
+                create: formationIds.map((fId) => ({
+                  formationId: fId,
                 })),
               }
             : undefined,

@@ -43,6 +43,17 @@ export default async function RmaDetailPage({
 
   const holidayDays = holidays.map((h) => new Date(h.date).getDate());
 
+  const formations = await prisma.formation.findMany({
+    where: { active: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
+  const existingRmaFormations = await prisma.rmaFormation.findMany({
+    where: { submissionId: submission.id },
+    select: { formationId: true },
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,6 +88,8 @@ export default async function RmaDetailPage({
             description: a.description || "",
           })),
         }}
+        availableFormations={formations}
+        existingFormationIds={existingRmaFormations.map((rf) => rf.formationId)}
       />
     </div>
   );

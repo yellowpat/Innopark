@@ -56,6 +56,7 @@ const fr: Dictionary = {
     reconciliation: "Réconciliation",
     reports: "Rapports",
     holidays: "Jours fériés",
+    formations: "Formations",
   },
   auth: {
     login: "Connexion",
@@ -190,6 +191,7 @@ const fr: Dictionary = {
     notYetCreated: "Pas encore créé",
     recentAttendance: "Présences récentes",
     noAttendance: "Aucune présence",
+    trainingsQuestion: "Avez-vous suivi des formations ? Si oui, lesquelles ?",
   },
   attendance: {
     title: "Ma présence",
@@ -314,6 +316,14 @@ const fr: Dictionary = {
       allCenters: "Tous les centres",
       noHolidays: "Aucun jour férié configuré",
     },
+    formations: {
+      title: "Gestion des formations",
+      addFormation: "Ajouter une formation",
+      deleteFormation: "Supprimer la formation",
+      confirmDelete: "Êtes-vous sûr de vouloir supprimer cette formation ?",
+      noFormations: "Aucune formation",
+      formationName: "Nom de la formation",
+    },
   },
   roleSwitcher: {
     admin: "Admin",
@@ -343,6 +353,8 @@ const fr: Dictionary = {
     holidayCreated: "Jour férié créé",
     holidayUpdated: "Jour férié mis à jour",
     holidayDeleted: "Jour férié supprimé",
+    formationCreated: "Formation créée",
+    formationDeleted: "Formation supprimée",
     loginFailed: "Email ou mot de passe incorrect",
     registrationFailed: "Erreur lors de l'inscription",
     emailAlreadyExists: "Cet email est déjà utilisé",
@@ -415,6 +427,7 @@ const en: Dictionary = {
     reconciliation: "Reconciliation",
     reports: "Reports",
     holidays: "Holidays",
+    formations: "Formations",
   },
   auth: {
     login: "Log in",
@@ -549,6 +562,7 @@ const en: Dictionary = {
     notYetCreated: "Not yet created",
     recentAttendance: "Recent Attendance",
     noAttendance: "No attendance",
+    trainingsQuestion: "Did you attend any training? If yes, which ones?",
   },
   attendance: {
     title: "My Attendance",
@@ -673,6 +687,14 @@ const en: Dictionary = {
       allCenters: "All centers",
       noHolidays: "No holidays configured",
     },
+    formations: {
+      title: "Formations management",
+      addFormation: "Add a formation",
+      deleteFormation: "Delete formation",
+      confirmDelete: "Are you sure you want to delete this formation?",
+      noFormations: "No formations",
+      formationName: "Formation name",
+    },
   },
   roleSwitcher: {
     admin: "Admin",
@@ -702,6 +724,8 @@ const en: Dictionary = {
     holidayCreated: "Holiday created",
     holidayUpdated: "Holiday updated",
     holidayDeleted: "Holiday deleted",
+    formationCreated: "Formation created",
+    formationDeleted: "Formation deleted",
     loginFailed: "Incorrect email or password",
     registrationFailed: "Registration failed",
     emailAlreadyExists: "This email is already in use",
@@ -774,6 +798,7 @@ const de: Dictionary = {
     reconciliation: "Abgleich",
     reports: "Berichte",
     holidays: "Feiertage",
+    formations: "Schulungen",
   },
   auth: {
     login: "Anmelden",
@@ -908,6 +933,7 @@ const de: Dictionary = {
     notYetCreated: "Noch nicht erstellt",
     recentAttendance: "Letzte Anwesenheiten",
     noAttendance: "Keine Anwesenheit",
+    trainingsQuestion: "Haben Sie an Schulungen teilgenommen? Wenn ja, an welchen?",
   },
   attendance: {
     title: "Meine Anwesenheit",
@@ -1032,6 +1058,14 @@ const de: Dictionary = {
       allCenters: "Alle Zentren",
       noHolidays: "Keine Feiertage konfiguriert",
     },
+    formations: {
+      title: "Schulungsverwaltung",
+      addFormation: "Schulung hinzufügen",
+      deleteFormation: "Schulung löschen",
+      confirmDelete: "Möchten Sie diese Schulung wirklich löschen?",
+      noFormations: "Keine Schulungen",
+      formationName: "Schulungsname",
+    },
   },
   roleSwitcher: {
     admin: "Admin",
@@ -1061,6 +1095,8 @@ const de: Dictionary = {
     holidayCreated: "Feiertag erstellt",
     holidayUpdated: "Feiertag aktualisiert",
     holidayDeleted: "Feiertag gelöscht",
+    formationCreated: "Schulung erstellt",
+    formationDeleted: "Schulung gelöscht",
     loginFailed: "Falsche E-Mail oder falsches Passwort",
     registrationFailed: "Registrierung fehlgeschlagen",
     emailAlreadyExists: "Diese E-Mail wird bereits verwendet",

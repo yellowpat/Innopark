@@ -15,6 +15,7 @@ import {
   BarChart3,
   CalendarCheck,
   GitCompare,
+  GraduationCap,
 } from "lucide-react";
 import type { Role } from "@prisma/client";
 import type { Dictionary } from "@/lib/i18n/types";
@@ -89,6 +90,12 @@ const navItems: NavItem[] = [
     href: "/admin/holidays",
     icon: Settings,
     roles: ["ADMIN"],
+  },
+  {
+    labelKey: "formations",
+    href: "/admin/formations",
+    icon: GraduationCap,
+    roles: ["ADMIN", "CENTER_STAFF"],
   },
 ];
 

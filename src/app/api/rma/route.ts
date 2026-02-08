@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { entries, absenceDetails, ...submissionData } = parsed.data;
+    const { entries, absenceDetails, formationIds, ...submissionData } = parsed.data;
 
     // Check for existing submission
     const existing = await prisma.rmaSubmission.findUnique({
@@ -125,6 +125,13 @@ export async function POST(request: Request) {
                 category: a.category,
                 date: new Date(a.date),
                 description: a.description,
+              })),
+            }
+          : undefined,
+        rmaFormations: formationIds
+          ? {
+              create: formationIds.map((fId) => ({
+                formationId: fId,
               })),
             }
           : undefined,
