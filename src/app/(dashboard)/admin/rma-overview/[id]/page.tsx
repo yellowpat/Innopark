@@ -6,6 +6,7 @@ import { getTranslations } from "@/lib/i18n/server";
 import { RmaCalendarGrid } from "@/components/rma-calendar-grid";
 import { RmaExportView } from "@/components/rma-export-view";
 import { RmaReviewActions } from "./review-actions";
+import { RmaAdminActions } from "./admin-actions";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-700",
@@ -81,6 +82,9 @@ export default async function AdminRmaDetailPage({
       {submission.status === "SUBMITTED" && (
         <RmaReviewActions submissionId={submission.id} />
       )}
+
+      {/* Admin Edit/Delete */}
+      <RmaAdminActions submissionId={submission.id} />
 
       {/* Admin Notes */}
       {submission.adminNotes && (

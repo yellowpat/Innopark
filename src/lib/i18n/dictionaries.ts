@@ -249,6 +249,10 @@ const fr: Dictionary = {
       filterByCenter: "Filtrer par centre",
       filterByMonth: "Filtrer par mois",
       filterByStatus: "Filtrer par statut",
+      editRma: "Modifier le RMA",
+      deleteRma: "Supprimer le RMA",
+      confirmDeleteRma: "Êtes-vous sûr de vouloir supprimer ce RMA ?",
+      rmaDeleted: "RMA supprimé",
     },
     attendanceOverview: {
       title: "Présences - Vue d'ensemble",
@@ -599,6 +603,10 @@ const en: Dictionary = {
       filterByCenter: "Filter by center",
       filterByMonth: "Filter by month",
       filterByStatus: "Filter by status",
+      editRma: "Edit RMA",
+      deleteRma: "Delete RMA",
+      confirmDeleteRma: "Are you sure you want to delete this RMA?",
+      rmaDeleted: "RMA deleted",
     },
     attendanceOverview: {
       title: "Attendance Overview",
@@ -949,6 +957,10 @@ const de: Dictionary = {
       filterByCenter: "Nach Zentrum filtern",
       filterByMonth: "Nach Monat filtern",
       filterByStatus: "Nach Status filtern",
+      editRma: "RMA bearbeiten",
+      deleteRma: "RMA löschen",
+      confirmDeleteRma: "Möchten Sie dieses RMA wirklich löschen?",
+      rmaDeleted: "RMA gelöscht",
     },
     attendanceOverview: {
       title: "Anwesenheitsübersicht",

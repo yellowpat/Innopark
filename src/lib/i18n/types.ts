@@ -250,6 +250,10 @@ export interface Dictionary {
       filterByCenter: string;
       filterByMonth: string;
       filterByStatus: string;
+      editRma: string;
+      deleteRma: string;
+      confirmDeleteRma: string;
+      rmaDeleted: string;
     };
     attendanceOverview: {
       title: string;

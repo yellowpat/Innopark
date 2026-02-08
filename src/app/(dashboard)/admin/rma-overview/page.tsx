@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/lib/i18n/server";
 import Link from "next/link";
+import { RmaListActions } from "./list-actions";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-700",
@@ -125,12 +126,7 @@ export default async function RmaOverviewPage({
                     </span>
                   </td>
                   <td className="px-6 py-3">
-                    <Link
-                      href={`/admin/rma-overview/${sub.id}`}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      {t.rma.viewDetails}
-                    </Link>
+                    <RmaListActions submissionId={sub.id} />
                   </td>
                 </tr>
               ))}
