@@ -30,7 +30,7 @@ const navItems: NavItem[] = [
     labelKey: "dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["PARTICIPANT", "CENTER_STAFF", "ADMIN"],
+    roles: ["CENTER_STAFF", "ADMIN"],
   },
   {
     labelKey: "myRma",

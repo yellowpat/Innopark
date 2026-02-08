@@ -13,31 +13,7 @@ export default async function DashboardPage() {
   const currentYear = now.getFullYear();
 
   if (session.user.role === "PARTICIPANT") {
-    const currentRma = await prisma.rmaSubmission.findUnique({
-      where: {
-        userId_year_month: {
-          userId: session.user.id,
-          year: currentYear,
-          month: currentMonth,
-        },
-      },
-    });
-
-    const recentAttendance = await prisma.attendanceRecord.findMany({
-      where: { userId: session.user.id },
-      orderBy: { date: "desc" },
-      take: 5,
-    });
-
-    return (
-      <ParticipantDashboard
-        userName={session.user.name}
-        currentRma={currentRma}
-        recentAttendance={recentAttendance}
-        currentMonth={currentMonth}
-        currentYear={currentYear}
-      />
-    );
+    redirect("/rma");
   }
 
   // Admin/Staff dashboard
