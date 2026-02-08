@@ -53,6 +53,7 @@ export interface Dictionary {
     dashboard: string;
     myRma: string;
     myAttendance: string;
+    attendanceList: string;
     participants: string;
     rmaOverview: string;
     attendance: string;

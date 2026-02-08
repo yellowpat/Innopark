@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   CalendarDays,
+  List,
   Users,
   ClipboardList,
   Settings,
@@ -42,6 +43,12 @@ const navItems: NavItem[] = [
     labelKey: "myAttendance",
     href: "/attendance",
     icon: CalendarDays,
+    roles: ["PARTICIPANT"],
+  },
+  {
+    labelKey: "attendanceList",
+    href: "/attendance/history",
+    icon: List,
     roles: ["PARTICIPANT"],
   },
   {
