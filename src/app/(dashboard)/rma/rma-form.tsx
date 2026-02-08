@@ -17,6 +17,15 @@ interface AbsenceDetail {
   category: string;
   date: string;
   description: string;
+  day?: number;
+  halfDay?: string;
+}
+
+interface MandateDetail {
+  day: number;
+  halfDay: string;
+  location: "remote" | "onsite";
+  locality: string;
 }
 
 interface RmaFormProps {
@@ -98,6 +107,7 @@ export function RmaForm({
   const [absenceDetails, setAbsenceDetails] = useState<AbsenceDetail[]>(
     existingData?.absenceDetails || []
   );
+  const [mandateDetails, setMandateDetails] = useState<MandateDetail[]>([]);
 
   const readOnly = existingStatus === "SUBMITTED";
 
@@ -105,24 +115,40 @@ export function RmaForm({
 
   const handleEntriesChange = useCallback((newEntries: GridEntry[]) => {
     setEntries(newEntries);
+    setAbsenceDetails((prev) =>
+      prev.filter((d) => {
+        if (d.day == null) return true;
+        return newEntries.some(
+          (e) => e.day === d.day && e.halfDay === d.halfDay && e.code === "G"
+        );
+      })
+    );
+    setMandateDetails((prev) =>
+      prev.filter((d) =>
+        newEntries.some(
+          (e) => e.day === d.day && e.halfDay === d.halfDay && e.code === "M"
+        )
+      )
+    );
   }, []);
 
   const handleAbsenceDetail = useCallback(
-    (day: number, _halfDay: HalfDay, category: string) => {
+    (day: number, halfDay: HalfDay, category: string) => {
       const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       setAbsenceDetails((prev) => [
-        ...prev,
-        { category, date: dateStr, description: "" },
+        ...prev.filter((d) => !(d.day === day && d.halfDay === halfDay)),
+        { day, halfDay, category, date: dateStr, description: "" },
       ]);
     },
     [year, month]
   );
 
   const handleMandateDetail = useCallback(
-    (_day: number, _halfDay: HalfDay, location: "remote" | "onsite", locality?: string) => {
-      if (locality) {
-        setMandateEmployer((prev) => prev || locality);
-      }
+    (day: number, halfDay: HalfDay, location: "remote" | "onsite", locality?: string) => {
+      setMandateDetails((prev) => [
+        ...prev.filter((d) => !(d.day === day && d.halfDay === halfDay)),
+        { day, halfDay, location, locality: locality || "" },
+      ]);
     },
     []
   );
@@ -152,6 +178,15 @@ export function RmaForm({
               category: a.category,
               date: a.date,
               description: a.description || undefined,
+            }))
+          : undefined,
+      mandateDetails:
+        mandateDetails.length > 0
+          ? mandateDetails.map((d) => ({
+              day: d.day,
+              halfDay: d.halfDay,
+              location: d.location,
+              locality: d.locality || undefined,
             }))
           : undefined,
     };
@@ -244,6 +279,16 @@ export function RmaForm({
     setAbsenceDetails(updated);
   }
 
+  function updateMandateDetail(
+    index: number,
+    field: keyof MandateDetail,
+    value: string
+  ) {
+    const updated = [...mandateDetails];
+    updated[index] = { ...updated[index], [field]: value };
+    setMandateDetails(updated);
+  }
+
   return (
     <div className="space-y-6">
       {/* Status banner */}
@@ -285,73 +330,98 @@ export function RmaForm({
         />
       </div>
 
-      {/* Absence Details */}
+      {/* Absence / Mandate Details */}
       <div className="rounded-lg border bg-white p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">{t.rma.absences}</h3>
-          {!readOnly && (
-            <button
-              type="button"
-              onClick={addAbsenceDetail}
-              className="text-sm text-primary hover:underline"
-            >
-              + {t.rma.addAbsence}
-            </button>
-          )}
-        </div>
+        <h3 className="mb-4 font-semibold">{t.rma.absences}</h3>
 
-        {absenceDetails.length === 0 ? (
+        {absenceDetails.length === 0 && mandateDetails.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t.common.noResults}
           </p>
         ) : (
           <div className="space-y-3">
-            {absenceDetails.map((detail, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <select
-                  value={detail.category}
-                  onChange={(e) =>
-                    updateAbsenceDetail(index, "category", e.target.value)
-                  }
-                  disabled={readOnly}
-                  className="rounded-md border px-3 py-2 text-sm"
-                >
-                  <option value="JOB_SEARCH">{t.rma.absenceCategories.JOB_SEARCH}</option>
-                  <option value="DOCTOR_VISIT">{t.rma.absenceCategories.DOCTOR_VISIT}</option>
-                  <option value="ORP_APPOINTMENT">{t.rma.absenceCategories.ORP_APPOINTMENT}</option>
-                  <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
-                  <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
-                </select>
-                <input
-                  type="date"
-                  value={detail.date}
-                  onChange={(e) =>
-                    updateAbsenceDetail(index, "date", e.target.value)
-                  }
-                  disabled={readOnly}
-                  className="rounded-md border px-3 py-2 text-sm"
-                />
-                <input
-                  type="text"
-                  value={detail.description}
-                  onChange={(e) =>
-                    updateAbsenceDetail(index, "description", e.target.value)
-                  }
-                  disabled={readOnly}
-                  placeholder={t.rma.description}
-                  className="flex-1 rounded-md border px-3 py-2 text-sm"
-                />
-                {!readOnly && (
-                  <button
-                    type="button"
-                    onClick={() => removeAbsenceDetail(index)}
-                    className="text-sm text-red-600 hover:text-red-800 px-2 py-2"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-            ))}
+            {[
+              ...absenceDetails.map((d, i) => ({
+                type: "G" as const,
+                idx: i,
+                sortDay: d.day ?? 999,
+                sortHalf: d.halfDay === "AM" ? 0 : d.halfDay === "PM" ? 1 : 0,
+              })),
+              ...mandateDetails.map((d, i) => ({
+                type: "M" as const,
+                idx: i,
+                sortDay: d.day,
+                sortHalf: d.halfDay === "AM" ? 0 : 1,
+              })),
+            ]
+              .sort((a, b) => a.sortDay - b.sortDay || a.sortHalf - b.sortHalf)
+              .map((row) => {
+                if (row.type === "M") {
+                  const detail = mandateDetails[row.idx];
+                  return (
+                    <div key={`M-${row.idx}`} className="flex gap-3 items-center">
+                      <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
+                        {t.common.day} {detail.day} {detail.halfDay}
+                      </span>
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold bg-purple-100 text-purple-800">
+                        M
+                      </span>
+                      <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
+                        {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
+                      </span>
+                      {detail.location === "onsite" && (
+                        <input
+                          type="text"
+                          value={detail.locality}
+                          onChange={(e) =>
+                            updateMandateDetail(row.idx, "locality", e.target.value)
+                          }
+                          disabled={readOnly}
+                          placeholder={t.rma.mandateLocality}
+                          className="flex-1 rounded-md border px-3 py-2 text-sm"
+                        />
+                      )}
+                    </div>
+                  );
+                }
+                const detail = absenceDetails[row.idx];
+                return (
+                  <div key={`G-${row.idx}`} className="flex gap-3 items-center">
+                    {detail.day != null && (
+                      <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
+                        {t.common.day} {detail.day} {detail.halfDay}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-800">
+                      G
+                    </span>
+                    <select
+                      value={detail.category}
+                      onChange={(e) =>
+                        updateAbsenceDetail(row.idx, "category", e.target.value)
+                      }
+                      disabled={readOnly}
+                      className="rounded-md border px-3 py-2 text-sm"
+                    >
+                      <option value="JOB_SEARCH">{t.rma.absenceCategories.JOB_SEARCH}</option>
+                      <option value="DOCTOR_VISIT">{t.rma.absenceCategories.DOCTOR_VISIT}</option>
+                      <option value="ORP_APPOINTMENT">{t.rma.absenceCategories.ORP_APPOINTMENT}</option>
+                      <option value="JOB_INTERVIEW">{t.rma.absenceCategories.JOB_INTERVIEW}</option>
+                      <option value="OTHER">{t.rma.absenceCategories.OTHER}</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={detail.description}
+                      onChange={(e) =>
+                        updateAbsenceDetail(row.idx, "description", e.target.value)
+                      }
+                      disabled={readOnly}
+                      placeholder={t.rma.description}
+                      className="flex-1 rounded-md border px-3 py-2 text-sm"
+                    />
+                  </div>
+                );
+              })}
           </div>
         )}
       </div>
