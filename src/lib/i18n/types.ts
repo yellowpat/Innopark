@@ -193,6 +193,8 @@ export interface Dictionary {
     recentAttendance: string;
     noAttendance: string;
     trainingsQuestion: string;
+    activateQuickFill: string;
+    deactivateQuickFill: string;
   };
   attendance: {
     title: string;

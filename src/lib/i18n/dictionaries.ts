@@ -192,6 +192,8 @@ const fr: Dictionary = {
     recentAttendance: "Présences récentes",
     noAttendance: "Aucune présence",
     trainingsQuestion: "Avez-vous suivi des formations ? Si oui, lesquelles ?",
+    activateQuickFill: "Activer Quick fill",
+    deactivateQuickFill: "Désactiver Quick fill",
   },
   attendance: {
     title: "Ma présence",
@@ -563,6 +565,8 @@ const en: Dictionary = {
     recentAttendance: "Recent Attendance",
     noAttendance: "No attendance",
     trainingsQuestion: "Did you attend any training? If yes, which ones?",
+    activateQuickFill: "Enable Quick fill",
+    deactivateQuickFill: "Disable Quick fill",
   },
   attendance: {
     title: "My Attendance",
@@ -934,6 +938,8 @@ const de: Dictionary = {
     recentAttendance: "Letzte Anwesenheiten",
     noAttendance: "Keine Anwesenheit",
     trainingsQuestion: "Haben Sie an Schulungen teilgenommen? Wenn ja, an welchen?",
+    activateQuickFill: "Quick fill aktivieren",
+    deactivateQuickFill: "Quick fill deaktivieren",
   },
   attendance: {
     title: "Meine Anwesenheit",

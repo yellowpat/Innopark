@@ -458,7 +458,7 @@ export function RmaCalendarGrid({
             }}
           >
             <Paintbrush className="h-3.5 w-3.5" />
-            {quickFillOpen ? "Désactiver Quick fill" : "Activer Quick fill"}
+            {quickFillOpen ? t.rma.deactivateQuickFill : t.rma.activateQuickFill}
           </button>
           {quickFillOpen && <div className="flex items-center gap-1">
             {SELECTABLE_CODES.map((code) => (
