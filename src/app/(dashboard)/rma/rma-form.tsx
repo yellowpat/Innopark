@@ -342,8 +342,9 @@ export function RmaForm({
               .map(({ detail, idx }) => (
                 <div key={`G-${idx}`} className="flex gap-3 items-center">
                   {detail.day != null && (
-                    <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
-                      {t.common.day} {detail.day} {detail.halfDay}
+                    <span className="text-xs font-medium text-gray-500 min-w-[10rem] shrink-0">
+                      {String(detail.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
+                      {detail.halfDay === "AM" ? t.common.morning : t.common.afternoon}
                     </span>
                   )}
                   <select
@@ -394,8 +395,9 @@ export function RmaForm({
               })
               .map(({ detail, idx }) => (
                 <div key={`M-${idx}`} className="flex gap-3 items-center">
-                  <span className="text-xs font-medium text-gray-500 min-w-[4.5rem] shrink-0">
-                    {t.common.day} {detail.day} {detail.halfDay}
+                  <span className="text-xs font-medium text-gray-500 min-w-[10rem] shrink-0">
+                    {String(detail.day).padStart(2, "0")}.{String(month).padStart(2, "0")}.{year}{" "}
+                    {detail.halfDay === "AM" ? t.common.morning : t.common.afternoon}
                   </span>
                   <span className="rounded-md border px-3 py-2 text-sm bg-gray-50">
                     {detail.location === "remote" ? t.rma.remote : t.rma.onsite}
