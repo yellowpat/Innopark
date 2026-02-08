@@ -164,6 +164,9 @@ export interface Dictionary {
     totalHalfDays: string;
     code: string;
     description: string;
+    remote: string;
+    onsite: string;
+    mandateLocality: string;
     absenceCategories: {
       JOB_SEARCH: string;
       DOCTOR_VISIT: string;

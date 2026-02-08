@@ -107,6 +107,26 @@ export function RmaForm({
     setEntries(newEntries);
   }, []);
 
+  const handleAbsenceDetail = useCallback(
+    (day: number, _halfDay: HalfDay, category: string) => {
+      const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      setAbsenceDetails((prev) => [
+        ...prev,
+        { category, date: dateStr, description: "" },
+      ]);
+    },
+    [year, month]
+  );
+
+  const handleMandateDetail = useCallback(
+    (_day: number, _halfDay: HalfDay, location: "remote" | "onsite", locality?: string) => {
+      if (locality) {
+        setMandateEmployer((prev) => prev || locality);
+      }
+    },
+    []
+  );
+
   function buildPayload() {
     return {
       year,
@@ -260,6 +280,8 @@ export function RmaForm({
           holidays={holidays}
           readOnly={readOnly}
           onChange={handleEntriesChange}
+          onAbsenceDetail={handleAbsenceDetail}
+          onMandateDetail={handleMandateDetail}
         />
       </div>
 

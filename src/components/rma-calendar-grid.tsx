@@ -13,6 +13,10 @@ interface GridEntry {
   code: RmaCode;
 }
 
+type AbsenceCategory = "JOB_SEARCH" | "DOCTOR_VISIT" | "ORP_APPOINTMENT" | "JOB_INTERVIEW";
+
+type MandateLocation = "remote" | "onsite";
+
 interface RmaCalendarGridProps {
   year: number;
   month: number;
@@ -20,6 +24,8 @@ interface RmaCalendarGridProps {
   holidays: Set<number>;
   readOnly?: boolean;
   onChange?: (entries: GridEntry[]) => void;
+  onAbsenceDetail?: (day: number, halfDay: HalfDay, category: AbsenceCategory) => void;
+  onMandateDetail?: (day: number, halfDay: HalfDay, location: MandateLocation, locality?: string) => void;
 }
 
 const SELECTABLE_CODES: RmaCode[] = [
@@ -49,6 +55,13 @@ const LOCALE_TAG_MAP: Record<string, string> = {
   de: "de-CH",
 };
 
+const G_SUBCATEGORIES: AbsenceCategory[] = [
+  "JOB_SEARCH",
+  "DOCTOR_VISIT",
+  "ORP_APPOINTMENT",
+  "JOB_INTERVIEW",
+];
+
 export function RmaCalendarGrid({
   year,
   month,
@@ -56,6 +69,8 @@ export function RmaCalendarGrid({
   holidays,
   readOnly = false,
   onChange,
+  onAbsenceDetail,
+  onMandateDetail,
 }: RmaCalendarGridProps) {
   const { t, locale } = useTranslation();
   const localeTag = LOCALE_TAG_MAP[locale] || "fr-CH";
@@ -65,6 +80,11 @@ export function RmaCalendarGrid({
     halfDay: HalfDay;
     rect: DOMRect;
   } | null>(null);
+  const [showGSub, setShowGSub] = useState(false);
+  const [showMSub, setShowMSub] = useState(false);
+  const [showMLocality, setShowMLocality] = useState(false);
+  const [mandateLocality, setMandateLocality] = useState("");
+  const lastMandateLocalityRef = useRef("");
   const pickerRef = useRef<HTMLDivElement>(null);
   const daysInMonth = getDaysInMonth(year, month);
 
@@ -73,7 +93,13 @@ export function RmaCalendarGrid({
     entryMap.set(`${e.day}-${e.halfDay}`, e.code);
   }
 
-  const closePicker = useCallback(() => setPickerTarget(null), []);
+  const closePicker = useCallback(() => {
+    setPickerTarget(null);
+    setShowGSub(false);
+    setShowMSub(false);
+    setShowMLocality(false);
+    setMandateLocality("");
+  }, []);
 
   // Close picker on Escape
   useEffect(() => {
@@ -128,6 +154,42 @@ export function RmaCalendarGrid({
     );
     onChange(newEntries);
     closePicker();
+  }
+
+  function handleCodeClick(day: number, halfDay: HalfDay, code: RmaCode) {
+    if (code === "G") {
+      setShowGSub(true);
+    } else if (code === "M") {
+      setShowMSub(true);
+    } else {
+      setCode(day, halfDay, code);
+    }
+  }
+
+  function selectGSubcategory(category: AbsenceCategory) {
+    if (!pickerTarget) return;
+    setCode(pickerTarget.day, pickerTarget.halfDay, "G" as RmaCode);
+    onAbsenceDetail?.(pickerTarget.day, pickerTarget.halfDay, category);
+  }
+
+  function selectMRemote() {
+    if (!pickerTarget) return;
+    setCode(pickerTarget.day, pickerTarget.halfDay, "M" as RmaCode);
+    onMandateDetail?.(pickerTarget.day, pickerTarget.halfDay, "remote");
+  }
+
+  function selectMOnsite() {
+    setShowMLocality(true);
+    setMandateLocality(lastMandateLocalityRef.current);
+  }
+
+  function confirmMOnsite() {
+    if (!pickerTarget) return;
+    if (mandateLocality.trim()) {
+      lastMandateLocalityRef.current = mandateLocality.trim();
+    }
+    setCode(pickerTarget.day, pickerTarget.halfDay, "M" as RmaCode);
+    onMandateDetail?.(pickerTarget.day, pickerTarget.halfDay, "onsite", mandateLocality.trim() || undefined);
   }
 
   function openPicker(
@@ -304,39 +366,117 @@ export function RmaCalendarGrid({
               </button>
             </div>
 
-            {/* Code buttons */}
-            <div className="grid grid-cols-2 gap-1.5">
-              {SELECTABLE_CODES.map((c) => (
+            {showGSub ? (
+              <>
+                {/* G sub-category picker */}
                 <button
-                  key={c}
                   type="button"
-                  className={cn(
-                    "flex items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors",
-                    RMA_CODE_COLORS[c],
-                    currentCode === c && "ring-2 ring-primary ring-offset-1",
-                    "hover:opacity-80"
-                  )}
-                  onClick={() =>
-                    setCode(pickerTarget.day, pickerTarget.halfDay, c)
-                  }
+                  onClick={() => setShowGSub(false)}
+                  className="text-xs text-primary hover:underline mb-2"
                 >
-                  <span className="font-bold text-sm w-5">{c}</span>
-                  <span className="leading-tight">{RMA_CODE_LABELS[c]}</span>
+                  &larr; {t.common.back}
                 </button>
-              ))}
-            </div>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {G_SUBCATEGORIES.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className="flex items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors hover:bg-orange-50"
+                      onClick={() => selectGSubcategory(cat)}
+                    >
+                      <span className="leading-tight">{t.rma.absenceCategories[cat]}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : showMSub ? (
+              <>
+                {/* M sub-picker: Remote / On-site */}
+                <button
+                  type="button"
+                  onClick={() => { setShowMSub(false); setShowMLocality(false); }}
+                  className="text-xs text-primary hover:underline mb-2"
+                >
+                  &larr; {t.common.back}
+                </button>
+                {!showMLocality ? (
+                  <div className="grid grid-cols-1 gap-1.5">
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors hover:bg-blue-50"
+                      onClick={selectMRemote}
+                    >
+                      <span className="leading-tight">{t.rma.remote}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors hover:bg-blue-50"
+                      onClick={selectMOnsite}
+                    >
+                      <span className="leading-tight">{t.rma.onsite}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-700">
+                      {t.rma.mandateLocality}
+                    </label>
+                    <input
+                      type="text"
+                      value={mandateLocality}
+                      onChange={(e) => setMandateLocality(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") confirmMOnsite(); }}
+                      autoFocus
+                      className="w-full rounded-md border px-3 py-2 text-sm"
+                      placeholder={t.rma.mandateLocality}
+                    />
+                    <button
+                      type="button"
+                      className="w-full rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 transition-colors"
+                      onClick={confirmMOnsite}
+                    >
+                      {t.common.confirm}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Code buttons */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  {SELECTABLE_CODES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={cn(
+                        "flex items-center gap-2 rounded-md border px-3 py-2 text-left text-xs transition-colors",
+                        RMA_CODE_COLORS[c],
+                        currentCode === c && "ring-2 ring-primary ring-offset-1",
+                        "hover:opacity-80"
+                      )}
+                      onClick={() =>
+                        handleCodeClick(pickerTarget.day, pickerTarget.halfDay, c)
+                      }
+                    >
+                      <span className="font-bold text-sm w-5">{c}</span>
+                      <span className="leading-tight">{RMA_CODE_LABELS[c]}</span>
+                    </button>
+                  ))}
+                </div>
 
-            {/* Remove button */}
-            {currentCode && (
-              <button
-                type="button"
-                className="mt-2 w-full rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-600 hover:bg-red-100 transition-colors"
-                onClick={() =>
-                  removeCode(pickerTarget.day, pickerTarget.halfDay)
-                }
-              >
-                {t.common.remove}
-              </button>
+                {/* Remove button */}
+                {currentCode && (
+                  <button
+                    type="button"
+                    className="mt-2 w-full rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-600 hover:bg-red-100 transition-colors"
+                    onClick={() =>
+                      removeCode(pickerTarget.day, pickerTarget.halfDay)
+                    }
+                  >
+                    {t.common.remove}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
