@@ -187,6 +187,7 @@ export interface Dictionary {
     entries: string;
     rmaHistory: string;
     noRma: string;
+    notYetCreated: string;
     recentAttendance: string;
     noAttendance: string;
   };

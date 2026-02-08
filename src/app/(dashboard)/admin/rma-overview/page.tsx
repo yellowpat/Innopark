@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/lib/i18n/server";
 import Link from "next/link";
+import type { Center } from "@prisma/client";
 import { RmaListActions } from "./list-actions";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,6 +34,10 @@ export default async function RmaOverviewPage({
   if (searchParams.year) where.year = parseInt(searchParams.year);
   if (searchParams.month) where.month = parseInt(searchParams.month);
 
+  const now = new Date();
+  const currentYear = searchParams.year ? parseInt(searchParams.year) : now.getFullYear();
+  const currentMonth = searchParams.month ? parseInt(searchParams.month) : now.getMonth() + 1;
+
   const submissions = await prisma.rmaSubmission.findMany({
     where,
     include: {
@@ -41,6 +46,32 @@ export default async function RmaOverviewPage({
     },
     orderBy: [{ year: "desc" }, { month: "desc" }, { updatedAt: "desc" }],
   });
+
+  // Find active participants who haven't created their RMA for the current month
+  const centerFilter =
+    session.user.role === "CENTER_STAFF"
+      ? session.user.primaryCenter
+      : (searchParams.center as Center | undefined) || undefined;
+
+  const activeParticipants = await prisma.user.findMany({
+    where: {
+      active: true,
+      role: "PARTICIPANT",
+      ...(centerFilter ? { primaryCenter: centerFilter as Center } : {}),
+    },
+    select: { id: true, name: true, email: true, primaryCenter: true },
+    orderBy: { name: "asc" },
+  });
+
+  const participantsWithRma = new Set(
+    submissions
+      .filter((s) => s.year === currentYear && s.month === currentMonth)
+      .map((s) => s.userId)
+  );
+
+  const missingParticipants = activeParticipants.filter(
+    (p) => !participantsWithRma.has(p.id)
+  );
 
   return (
     <div className="space-y-6">
@@ -75,7 +106,7 @@ export default async function RmaOverviewPage({
       </div>
 
       <div className="rounded-lg border bg-white">
-        {submissions.length === 0 ? (
+        {submissions.length === 0 && missingParticipants.length === 0 ? (
           <div className="px-6 py-12 text-center text-sm text-muted-foreground">
             {t.admin.rmaOverview.noSubmissions}
           </div>
@@ -104,6 +135,25 @@ export default async function RmaOverviewPage({
               </tr>
             </thead>
             <tbody className="divide-y">
+              {!searchParams.status && missingParticipants.map((p) => (
+                <tr key={`missing-${p.id}`} className="bg-red-50/50 hover:bg-red-50">
+                  <td className="px-6 py-3">
+                    <p className="text-sm font-medium">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.email}</p>
+                  </td>
+                  <td className="px-6 py-3 text-sm">
+                    {t.months[currentMonth - 1]} {currentYear}
+                  </td>
+                  <td className="px-6 py-3 text-sm">{p.primaryCenter}</td>
+                  <td className="px-6 py-3 text-sm">—</td>
+                  <td className="px-6 py-3">
+                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-700">
+                      {t.rma.notYetCreated}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-sm text-muted-foreground">—</td>
+                </tr>
+              ))}
               {submissions.map((sub) => (
                 <tr key={sub.id} className="hover:bg-gray-50">
                   <td className="px-6 py-3">
