@@ -216,6 +216,8 @@ export interface Dictionary {
     wholeDay: string;
     location: string;
     selectPresence: string;
+    confirmDelete: string;
+    deleted: string;
   };
   centers: {
     FRIBOURG: string;

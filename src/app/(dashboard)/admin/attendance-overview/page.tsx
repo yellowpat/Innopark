@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr, enGB, de } from "date-fns/locale";
 import type { Locale } from "@/lib/i18n/types";
+import { DeleteAttendance } from "./delete-attendance";
 
 const DATE_LOCALE_MAP: Record<Locale, typeof fr> = { fr, en: enGB, de };
 
@@ -81,6 +82,9 @@ export default async function AttendanceOverviewPage({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   {t.common.notes}
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  {t.common.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -113,6 +117,9 @@ export default async function AttendanceOverviewPage({
                   </td>
                   <td className="px-6 py-3 text-sm text-muted-foreground">
                     {record.notes || "—"}
+                  </td>
+                  <td className="px-6 py-3">
+                    <DeleteAttendance recordId={record.id} />
                   </td>
                 </tr>
               ))}

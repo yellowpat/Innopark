@@ -8,6 +8,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { fr, enGB, de } from "date-fns/locale";
 import type { Locale } from "@/lib/i18n/types";
+import { DeleteAttendance } from "../../../attendance-overview/delete-attendance";
 
 const DATE_LOCALE_MAP: Record<Locale, typeof fr> = { fr, en: enGB, de };
 
@@ -119,6 +120,9 @@ export default async function ParticipantHistoryPage({
                 <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                   {t.rma.code}
                 </th>
+                <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  {t.common.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -141,6 +145,9 @@ export default async function ParticipantHistoryPage({
                     >
                       {record.actualCode}
                     </span>
+                  </td>
+                  <td className="px-6 py-2">
+                    <DeleteAttendance recordId={record.id} />
                   </td>
                 </tr>
               ))}

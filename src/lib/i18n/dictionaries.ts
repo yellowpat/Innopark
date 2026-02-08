@@ -215,6 +215,8 @@ const fr: Dictionary = {
     wholeDay: "Journée entière",
     location: "Lieu",
     selectPresence: "Présence",
+    confirmDelete: "Êtes-vous sûr de vouloir supprimer cette présence ?",
+    deleted: "Présence supprimée",
   },
   centers: {
     FRIBOURG: "Fribourg",
@@ -569,6 +571,8 @@ const en: Dictionary = {
     wholeDay: "Whole day",
     location: "Location",
     selectPresence: "Presence",
+    confirmDelete: "Are you sure you want to delete this attendance record?",
+    deleted: "Attendance record deleted",
   },
   centers: {
     FRIBOURG: "Fribourg",
@@ -923,6 +927,8 @@ const de: Dictionary = {
     wholeDay: "Ganzer Tag",
     location: "Standort",
     selectPresence: "Anwesenheit",
+    confirmDelete: "Möchten Sie diesen Anwesenheitseintrag wirklich löschen?",
+    deleted: "Anwesenheitseintrag gelöscht",
   },
   centers: {
     FRIBOURG: "Freiburg",
