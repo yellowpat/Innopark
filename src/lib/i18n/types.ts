@@ -155,6 +155,7 @@ export interface Dictionary {
     alreadySubmitted: string;
     confirmSubmit: string;
     confirmSubmitMessage: string;
+    confirmResubmit: string;
     exportTitle: string;
     exportForPortal: string;
     gridExport: string;

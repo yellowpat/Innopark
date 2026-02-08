@@ -138,6 +138,9 @@ export function RmaForm({
   }
 
   async function handleSave() {
+    if (existingStatus === "APPROVED") {
+      if (!window.confirm(t.rma.confirmResubmit)) return;
+    }
     setSaving(true);
     try {
       const payload = buildPayload();
@@ -175,6 +178,10 @@ export function RmaForm({
     if (!id) {
       toast.error(t.rma.saveDraft);
       return;
+    }
+
+    if (existingStatus === "APPROVED") {
+      if (!window.confirm(t.rma.confirmResubmit)) return;
     }
 
     setSubmitting(true);
