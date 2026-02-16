@@ -10,6 +10,7 @@ import {
   CalendarDays,
   List,
   Users,
+  UserPlus,
   ClipboardList,
   Settings,
   BarChart3,
@@ -98,9 +99,21 @@ const navItems: NavItem[] = [
     roles: ["ADMIN", "CENTER_STAFF"],
     children: [
       {
+        labelKey: "formationsManagement",
+        href: "/admin/formations",
+        icon: GraduationCap,
+        roles: ["ADMIN", "CENTER_STAFF"],
+      },
+      {
         labelKey: "teachers",
         href: "/admin/formations/teachers",
         icon: Users,
+        roles: ["ADMIN", "CENTER_STAFF"],
+      },
+      {
+        labelKey: "allocations",
+        href: "/admin/formations/allocations",
+        icon: UserPlus,
         roles: ["ADMIN", "CENTER_STAFF"],
       },
     ],

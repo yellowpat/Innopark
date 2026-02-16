@@ -174,26 +174,37 @@ model Formation {
   name        String
   teacherId   String?
   teacher     Teacher?   @relation(fields: [teacherId], references: [id])
-  dates       DateTime[]
   maxCapacity Int?
   active      Boolean    @default(true)
   createdAt   DateTime   @default(now())
 
   rmaFormations RmaFormation[]
-  enrollments   FormationEnrollment[]
+  sessions      FormationSession[]
 
   @@map("formations")
 }
 
-model FormationEnrollment {
+model FormationSession {
   id          String    @id @default(cuid())
   formationId String
   formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enrolledAt  DateTime  @default(now())
+  dates       DateTime[]
+  createdAt   DateTime  @default(now())
 
-  @@unique([formationId, userId])
+  enrollments FormationEnrollment[]
+
+  @@map("formation_sessions")
+}
+
+model FormationEnrollment {
+  id         String           @id @default(cuid())
+  sessionId  String
+  session    FormationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime         @default(now())
+
+  @@unique([sessionId, userId])
   @@map("formation_enrollments")
 }
 

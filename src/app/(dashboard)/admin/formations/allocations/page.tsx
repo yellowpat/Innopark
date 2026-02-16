@@ -2,16 +2,16 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/lib/i18n/server";
-import { FormationsClient } from "./formations-client";
+import { AllocationsClient } from "./allocations-client";
 
-export default async function FormationsPage() {
+export default async function AllocationsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (session.user.role !== "ADMIN" && session.user.role !== "CENTER_STAFF")
     redirect("/dashboard");
   const t = await getTranslations();
 
-  const [formations, teachers] = await Promise.all([
+  const [formations, participants] = await Promise.all([
     prisma.formation.findMany({
       orderBy: { name: "asc" },
       include: {
@@ -22,20 +22,21 @@ export default async function FormationsPage() {
         },
       },
     }),
-    prisma.teacher.findMany({
-      where: { active: true },
+    prisma.user.findMany({
+      where: { role: "PARTICIPANT", active: true },
       orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true, primaryCenter: true },
     }),
   ]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{t.admin.formations.title}</h1>
+        <h1 className="text-2xl font-bold">{t.admin.allocations.title}</h1>
       </div>
-      <FormationsClient
+      <AllocationsClient
         initialFormations={formations}
-        teachers={teachers}
+        participants={participants}
       />
     </div>
   );

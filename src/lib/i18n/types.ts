@@ -62,6 +62,8 @@ export interface Dictionary {
     holidays: string;
     formations: string;
     teachers: string;
+    allocations: string;
+    formationsManagement: string;
   };
   auth: {
     login: string;
@@ -334,6 +336,13 @@ export interface Dictionary {
       selectTeacher: string;
       maxCapacity: string;
       enrolled: string;
+      sessions: string;
+      addSession: string;
+      removeSession: string;
+      sessionLabel: string;
+    };
+    allocations: {
+      title: string;
       manageStudents: string;
       addStudent: string;
       removeStudent: string;

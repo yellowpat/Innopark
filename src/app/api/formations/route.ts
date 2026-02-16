@@ -13,7 +13,13 @@ export async function GET() {
   const formations = await prisma.formation.findMany({
     where: { active: true },
     orderBy: { name: "asc" },
-    include: { teacher: true, _count: { select: { enrollments: true } } },
+    include: {
+      teacher: true,
+      sessions: {
+        include: { _count: { select: { enrollments: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
 
   return NextResponse.json(formations);
@@ -31,16 +37,26 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+    const sessions: { dates: string[] }[] = body.sessions || [];
+
     const formation = await prisma.formation.create({
       data: {
         name: body.name,
         teacherId: body.teacherId || null,
-        dates: body.dates
-          ? body.dates.map((d: string) => new Date(d))
-          : [],
         maxCapacity: body.maxCapacity ?? null,
+        sessions: {
+          create: sessions.map((s) => ({
+            dates: s.dates.map((d: string) => new Date(d)),
+          })),
+        },
       },
-      include: { teacher: true, _count: { select: { enrollments: true } } },
+      include: {
+        teacher: true,
+        sessions: {
+          include: { _count: { select: { enrollments: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+      },
     });
     return NextResponse.json(formation, { status: 201 });
   } catch (error) {

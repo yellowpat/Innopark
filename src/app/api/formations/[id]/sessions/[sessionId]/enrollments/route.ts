@@ -5,7 +5,7 @@ import { getTranslations } from "@/lib/i18n/server";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string; sessionId: string } }
 ) {
   const t = getTranslations();
   const session = await auth();
@@ -17,7 +17,7 @@ export async function GET(
   }
 
   const enrollments = await prisma.formationEnrollment.findMany({
-    where: { formationId: params.id },
+    where: { sessionId: params.sessionId },
     include: {
       user: {
         select: { id: true, name: true, email: true, primaryCenter: true },
@@ -31,7 +31,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string; sessionId: string } }
 ) {
   const t = getTranslations();
   const session = await auth();
@@ -50,28 +50,31 @@ export async function POST(
       return NextResponse.json({ error: t.api.invalidData }, { status: 400 });
     }
 
-    const formation = await prisma.formation.findUnique({
-      where: { id: params.id },
-      include: { _count: { select: { enrollments: true } } },
+    const formationSession = await prisma.formationSession.findUnique({
+      where: { id: params.sessionId },
+      include: {
+        formation: true,
+        _count: { select: { enrollments: true } },
+      },
     });
 
-    if (!formation) {
+    if (!formationSession) {
       return NextResponse.json({ error: t.api.notFound }, { status: 404 });
     }
 
     if (
-      formation.maxCapacity !== null &&
-      formation._count.enrollments >= formation.maxCapacity
+      formationSession.formation.maxCapacity !== null &&
+      formationSession._count.enrollments >= formationSession.formation.maxCapacity
     ) {
       return NextResponse.json(
-        { error: t.admin.formations.classFull },
+        { error: t.admin.allocations.classFull },
         { status: 400 }
       );
     }
 
     const enrollment = await prisma.formationEnrollment.create({
       data: {
-        formationId: params.id,
+        sessionId: params.sessionId,
         userId,
       },
       include: {

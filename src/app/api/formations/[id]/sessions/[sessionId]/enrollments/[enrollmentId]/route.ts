@@ -5,7 +5,7 @@ import { getTranslations } from "@/lib/i18n/server";
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string; enrollmentId: string } }
+  { params }: { params: { id: string; sessionId: string; enrollmentId: string } }
 ) {
   const t = getTranslations();
   const session = await auth();
