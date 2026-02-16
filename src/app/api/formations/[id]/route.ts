@@ -26,8 +26,9 @@ export async function PUT(
         dates: body.dates
           ? body.dates.map((d: string) => new Date(d))
           : [],
+        maxCapacity: body.maxCapacity ?? null,
       },
-      include: { teacher: true },
+      include: { teacher: true, _count: { select: { enrollments: true } } },
     });
     return NextResponse.json(formation);
   } catch (error) {

@@ -73,6 +73,7 @@ model User {
 
   rmaSubmissions   RmaSubmission[]
   attendanceRecords AttendanceRecord[]
+  formationEnrollments FormationEnrollment[]
 
   @@map("users")
 }
@@ -169,17 +170,31 @@ model Teacher {
 }
 
 model Formation {
-  id        String     @id @default(cuid())
-  name      String
-  teacherId String?
-  teacher   Teacher?   @relation(fields: [teacherId], references: [id])
-  dates     DateTime[]
-  active    Boolean    @default(true)
-  createdAt DateTime   @default(now())
+  id          String     @id @default(cuid())
+  name        String
+  teacherId   String?
+  teacher     Teacher?   @relation(fields: [teacherId], references: [id])
+  dates       DateTime[]
+  maxCapacity Int?
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
 
   rmaFormations RmaFormation[]
+  enrollments   FormationEnrollment[]
 
   @@map("formations")
+}
+
+model FormationEnrollment {
+  id          String    @id @default(cuid())
+  formationId String
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrolledAt  DateTime  @default(now())
+
+  @@unique([formationId, userId])
+  @@map("formation_enrollments")
 }
 
 model RmaFormation {

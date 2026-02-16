@@ -332,6 +332,14 @@ export interface Dictionary {
       sessionDates: string;
       addDate: string;
       selectTeacher: string;
+      maxCapacity: string;
+      enrolled: string;
+      manageStudents: string;
+      addStudent: string;
+      removeStudent: string;
+      classFull: string;
+      selectStudent: string;
+      noStudents: string;
     };
     teachers: {
       title: string;

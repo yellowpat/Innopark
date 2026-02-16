@@ -11,14 +11,19 @@ export default async function FormationsPage() {
     redirect("/dashboard");
   const t = await getTranslations();
 
-  const [formations, teachers] = await Promise.all([
+  const [formations, teachers, participants] = await Promise.all([
     prisma.formation.findMany({
       orderBy: { name: "asc" },
-      include: { teacher: true },
+      include: { teacher: true, _count: { select: { enrollments: true } } },
     }),
     prisma.teacher.findMany({
       where: { active: true },
       orderBy: { name: "asc" },
+    }),
+    prisma.user.findMany({
+      where: { role: "PARTICIPANT", active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true, primaryCenter: true },
     }),
   ]);
 
@@ -27,7 +32,11 @@ export default async function FormationsPage() {
       <div>
         <h1 className="text-2xl font-bold">{t.admin.formations.title}</h1>
       </div>
-      <FormationsClient initialFormations={formations} teachers={teachers} />
+      <FormationsClient
+        initialFormations={formations}
+        teachers={teachers}
+        participants={participants}
+      />
     </div>
   );
 }

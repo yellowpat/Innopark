@@ -13,7 +13,7 @@ export async function GET() {
   const formations = await prisma.formation.findMany({
     where: { active: true },
     orderBy: { name: "asc" },
-    include: { teacher: true },
+    include: { teacher: true, _count: { select: { enrollments: true } } },
   });
 
   return NextResponse.json(formations);
@@ -38,8 +38,9 @@ export async function POST(request: Request) {
         dates: body.dates
           ? body.dates.map((d: string) => new Date(d))
           : [],
+        maxCapacity: body.maxCapacity ?? null,
       },
-      include: { teacher: true },
+      include: { teacher: true, _count: { select: { enrollments: true } } },
     });
     return NextResponse.json(formation, { status: 201 });
   } catch (error) {
