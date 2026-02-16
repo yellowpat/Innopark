@@ -86,9 +86,10 @@ export function FormationsClient({
     setEditingId(formation.id);
     setEditName(formation.name);
     setEditTeacher(formation.teacher || "");
+    const formationDates = formation.dates || [];
     setEditDates(
-      formation.dates.length > 0
-        ? formation.dates.map((d) => toDateInputValue(d))
+      formationDates.length > 0
+        ? formationDates.map((d) => toDateInputValue(d))
         : []
     );
   }
@@ -366,7 +367,7 @@ export function FormationsClient({
                       {formation.teacher || "—"}
                     </td>
                     <td className="px-6 py-3 text-sm">
-                      {formation.dates.length > 0
+                      {(formation.dates || []).length > 0
                         ? formatDateList(formation.dates, locale)
                         : "—"}
                     </td>
