@@ -322,10 +322,14 @@ export interface Dictionary {
     formations: {
       title: string;
       addFormation: string;
+      editFormation: string;
       deleteFormation: string;
       confirmDelete: string;
       noFormations: string;
       formationName: string;
+      teacherName: string;
+      sessionDates: string;
+      addDate: string;
     };
   };
   roleSwitcher: {
@@ -357,6 +361,7 @@ export interface Dictionary {
     holidayUpdated: string;
     holidayDeleted: string;
     formationCreated: string;
+    formationUpdated: string;
     formationDeleted: string;
     loginFailed: string;
     registrationFailed: string;

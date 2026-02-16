@@ -31,7 +31,13 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const formation = await prisma.formation.create({
-      data: { name: body.name },
+      data: {
+        name: body.name,
+        teacher: body.teacher || null,
+        dates: body.dates
+          ? body.dates.map((d: string) => new Date(d))
+          : [],
+      },
     });
     return NextResponse.json(formation, { status: 201 });
   } catch (error) {

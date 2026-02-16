@@ -3,9 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil, X } from "lucide-react";
+import { format } from "date-fns";
+import { fr, enGB, de } from "date-fns/locale";
 import { useTranslation } from "@/lib/i18n/context";
 import type { Formation } from "@prisma/client";
+import type { Locale } from "@/lib/i18n/types";
+
+const DATE_LOCALE_MAP: Record<Locale, typeof fr> = { fr, en: enGB, de };
+
+function formatDateList(dates: Date[], locale: Locale) {
+  const sorted = dates
+    .map((d) => new Date(d))
+    .sort((a, b) => a.getTime() - b.getTime());
+  const formatted = sorted.map((d) =>
+    format(d, "d MMM", { locale: DATE_LOCALE_MAP[locale] })
+  );
+  if (formatted.length <= 3) return formatted.join(", ");
+  return `${formatted.slice(0, 3).join(", ")} +${formatted.length - 3} more`;
+}
+
+function toDateInputValue(d: Date | string) {
+  const date = new Date(d);
+  return date.toISOString().split("T")[0];
+}
 
 export function FormationsClient({
   initialFormations,
@@ -13,10 +34,19 @@ export function FormationsClient({
   initialFormations: Formation[];
 }) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
+  const [teacher, setTeacher] = useState("");
+  const [dates, setDates] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Edit mode
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editTeacher, setEditTeacher] = useState("");
+  const [editDates, setEditDates] = useState<string[]>([]);
+  const [editSaving, setEditSaving] = useState(false);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +56,11 @@ export function FormationsClient({
       const res = await fetch("/api/formations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({
+          name,
+          teacher: teacher || null,
+          dates: dates.filter(Boolean),
+        }),
       });
 
       if (!res.ok) {
@@ -38,11 +72,60 @@ export function FormationsClient({
       toast.success(t.api.formationCreated);
       setShowForm(false);
       setName("");
+      setTeacher("");
+      setDates([]);
       router.refresh();
     } catch {
       toast.error(t.api.serverError);
     } finally {
       setSaving(false);
+    }
+  }
+
+  function startEdit(formation: Formation) {
+    setEditingId(formation.id);
+    setEditName(formation.name);
+    setEditTeacher(formation.teacher || "");
+    setEditDates(
+      formation.dates.length > 0
+        ? formation.dates.map((d) => toDateInputValue(d))
+        : []
+    );
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setEditSaving(true);
+
+    try {
+      const res = await fetch(`/api/formations/${editingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName,
+          teacher: editTeacher || null,
+          dates: editDates.filter(Boolean),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || t.api.serverError);
+        return;
+      }
+
+      toast.success(t.api.formationUpdated);
+      setEditingId(null);
+      router.refresh();
+    } catch {
+      toast.error(t.api.serverError);
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -72,26 +155,89 @@ export function FormationsClient({
 
       {showForm && (
         <div className="rounded-lg border bg-white p-6">
-          <form onSubmit={handleCreate} className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t.admin.formations.formationName}
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full rounded-md border px-3 py-2 text-sm"
-              />
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.admin.formations.formationName}
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full rounded-md border px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.admin.formations.teacherName}
+                </label>
+                <input
+                  type="text"
+                  value={teacher}
+                  onChange={(e) => setTeacher(e.target.value)}
+                  className="w-full rounded-md border px-3 py-2 text-sm"
+                />
+              </div>
             </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90 disabled:opacity-50"
-            >
-              {saving ? t.common.loading : t.common.add}
-            </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t.admin.formations.sessionDates}
+              </label>
+              <div className="flex flex-wrap gap-2 items-center">
+                {dates.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <input
+                      type="date"
+                      value={d}
+                      onChange={(e) => {
+                        const next = [...dates];
+                        next[i] = e.target.value;
+                        setDates(next);
+                      }}
+                      className="rounded-md border px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setDates(dates.filter((_, j) => j !== i))}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setDates([...dates, ""])}
+                  className="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  <Plus className="h-3 w-3" />
+                  {t.admin.formations.addDate}
+                </button>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90 disabled:opacity-50"
+              >
+                {saving ? t.common.loading : t.common.add}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setName("");
+                  setTeacher("");
+                  setDates([]);
+                }}
+                className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              >
+                {t.common.cancel}
+              </button>
+            </div>
           </form>
         </div>
       )}
@@ -109,26 +255,140 @@ export function FormationsClient({
                   {t.admin.formations.formationName}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  {t.admin.formations.teacherName}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  {t.admin.formations.sessionDates}
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   {t.common.actions}
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {initialFormations.map((formation) => (
-                <tr key={formation.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-3 text-sm font-medium">
-                    {formation.name}
-                  </td>
-                  <td className="px-6 py-3">
-                    <button
-                      onClick={() => handleDelete(formation.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {initialFormations.map((formation) =>
+                editingId === formation.id ? (
+                  <tr key={formation.id}>
+                    <td colSpan={4} className="px-6 py-4">
+                      <form onSubmit={handleUpdate} className="space-y-4">
+                        <div className="flex gap-4 items-end">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {t.admin.formations.formationName}
+                            </label>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              required
+                              className="w-full rounded-md border px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {t.admin.formations.teacherName}
+                            </label>
+                            <input
+                              type="text"
+                              value={editTeacher}
+                              onChange={(e) => setEditTeacher(e.target.value)}
+                              className="w-full rounded-md border px-3 py-2 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {t.admin.formations.sessionDates}
+                          </label>
+                          <div className="flex flex-wrap gap-2 items-center">
+                            {editDates.map((d, i) => (
+                              <div key={i} className="flex items-center gap-1">
+                                <input
+                                  type="date"
+                                  value={d}
+                                  onChange={(e) => {
+                                    const next = [...editDates];
+                                    next[i] = e.target.value;
+                                    setEditDates(next);
+                                  }}
+                                  className="rounded-md border px-3 py-2 text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditDates(
+                                      editDates.filter((_, j) => j !== i)
+                                    )
+                                  }
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditDates([...editDates, ""])
+                              }
+                              className="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                            >
+                              <Plus className="h-3 w-3" />
+                              {t.admin.formations.addDate}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={editSaving}
+                            className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:bg-primary/90 disabled:opacity-50"
+                          >
+                            {editSaving ? t.common.loading : t.common.save}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                          >
+                            {t.common.cancel}
+                          </button>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={formation.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm font-medium">
+                      {formation.name}
+                    </td>
+                    <td className="px-6 py-3 text-sm">
+                      {formation.teacher || "—"}
+                    </td>
+                    <td className="px-6 py-3 text-sm">
+                      {formation.dates.length > 0
+                        ? formatDateList(formation.dates, locale)
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEdit(formation)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(formation.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         )}

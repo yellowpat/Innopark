@@ -156,10 +156,12 @@ model AttendanceRecord {
 }
 
 model Formation {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  teacher   String?
+  dates     DateTime[]
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
 
   rmaFormations RmaFormation[]
 
