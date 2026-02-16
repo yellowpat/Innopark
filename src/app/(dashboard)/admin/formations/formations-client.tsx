@@ -7,8 +7,10 @@ import { Plus, Trash2, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr, enGB, de } from "date-fns/locale";
 import { useTranslation } from "@/lib/i18n/context";
-import type { Formation } from "@prisma/client";
+import type { Formation, Teacher } from "@prisma/client";
 import type { Locale } from "@/lib/i18n/types";
+
+type FormationWithTeacher = Formation & { teacher: Teacher | null };
 
 const DATE_LOCALE_MAP: Record<Locale, typeof fr> = { fr, en: enGB, de };
 
@@ -30,21 +32,23 @@ function toDateInputValue(d: Date | string) {
 
 export function FormationsClient({
   initialFormations,
+  teachers,
 }: {
-  initialFormations: Formation[];
+  initialFormations: FormationWithTeacher[];
+  teachers: Teacher[];
 }) {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
-  const [teacher, setTeacher] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const [dates, setDates] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Edit mode
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-  const [editTeacher, setEditTeacher] = useState("");
+  const [editTeacherId, setEditTeacherId] = useState("");
   const [editDates, setEditDates] = useState<string[]>([]);
   const [editSaving, setEditSaving] = useState(false);
 
@@ -58,7 +62,7 @@ export function FormationsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          teacher: teacher || null,
+          teacherId: teacherId || null,
           dates: dates.filter(Boolean),
         }),
       });
@@ -72,7 +76,7 @@ export function FormationsClient({
       toast.success(t.api.formationCreated);
       setShowForm(false);
       setName("");
-      setTeacher("");
+      setTeacherId("");
       setDates([]);
       router.refresh();
     } catch {
@@ -82,10 +86,10 @@ export function FormationsClient({
     }
   }
 
-  function startEdit(formation: Formation) {
+  function startEdit(formation: FormationWithTeacher) {
     setEditingId(formation.id);
     setEditName(formation.name);
-    setEditTeacher(formation.teacher || "");
+    setEditTeacherId(formation.teacherId || "");
     const formationDates = formation.dates || [];
     setEditDates(
       formationDates.length > 0
@@ -109,7 +113,7 @@ export function FormationsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName,
-          teacher: editTeacher || null,
+          teacherId: editTeacherId || null,
           dates: editDates.filter(Boolean),
         }),
       });
@@ -174,12 +178,16 @@ export function FormationsClient({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t.admin.formations.teacherName}
                 </label>
-                <input
-                  type="text"
-                  value={teacher}
-                  onChange={(e) => setTeacher(e.target.value)}
+                <select
+                  value={teacherId}
+                  onChange={(e) => setTeacherId(e.target.value)}
                   className="w-full rounded-md border px-3 py-2 text-sm"
-                />
+                >
+                  <option value="">{t.admin.formations.selectTeacher}</option>
+                  {teachers.map((tc) => (
+                    <option key={tc.id} value={tc.id}>{tc.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div>
@@ -231,7 +239,7 @@ export function FormationsClient({
                 onClick={() => {
                   setShowForm(false);
                   setName("");
-                  setTeacher("");
+                  setTeacherId("");
                   setDates([]);
                 }}
                 className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
@@ -289,12 +297,16 @@ export function FormationsClient({
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {t.admin.formations.teacherName}
                             </label>
-                            <input
-                              type="text"
-                              value={editTeacher}
-                              onChange={(e) => setEditTeacher(e.target.value)}
+                            <select
+                              value={editTeacherId}
+                              onChange={(e) => setEditTeacherId(e.target.value)}
                               className="w-full rounded-md border px-3 py-2 text-sm"
-                            />
+                            >
+                              <option value="">{t.admin.formations.selectTeacher}</option>
+                              {teachers.map((tc) => (
+                                <option key={tc.id} value={tc.id}>{tc.name}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                         <div>
@@ -364,7 +376,7 @@ export function FormationsClient({
                       {formation.name}
                     </td>
                     <td className="px-6 py-3 text-sm">
-                      {formation.teacher || "—"}
+                      {formation.teacher?.name || "—"}
                     </td>
                     <td className="px-6 py-3 text-sm">
                       {(formation.dates || []).length > 0

@@ -11,16 +11,23 @@ export default async function FormationsPage() {
     redirect("/dashboard");
   const t = await getTranslations();
 
-  const formations = await prisma.formation.findMany({
-    orderBy: { name: "asc" },
-  });
+  const [formations, teachers] = await Promise.all([
+    prisma.formation.findMany({
+      orderBy: { name: "asc" },
+      include: { teacher: true },
+    }),
+    prisma.teacher.findMany({
+      where: { active: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{t.admin.formations.title}</h1>
       </div>
-      <FormationsClient initialFormations={formations} />
+      <FormationsClient initialFormations={formations} teachers={teachers} />
     </div>
   );
 }

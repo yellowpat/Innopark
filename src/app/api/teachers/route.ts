@@ -10,13 +10,12 @@ export async function GET() {
     return NextResponse.json({ error: t.api.unauthorized }, { status: 401 });
   }
 
-  const formations = await prisma.formation.findMany({
+  const teachers = await prisma.teacher.findMany({
     where: { active: true },
     orderBy: { name: "asc" },
-    include: { teacher: true },
   });
 
-  return NextResponse.json(formations);
+  return NextResponse.json(teachers);
 }
 
 export async function POST(request: Request) {
@@ -31,19 +30,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const formation = await prisma.formation.create({
+    const teacher = await prisma.teacher.create({
       data: {
         name: body.name,
-        teacherId: body.teacherId || null,
-        dates: body.dates
-          ? body.dates.map((d: string) => new Date(d))
-          : [],
+        email: body.email || null,
+        phone: body.phone || null,
       },
-      include: { teacher: true },
     });
-    return NextResponse.json(formation, { status: 201 });
+    return NextResponse.json(teacher, { status: 201 });
   } catch (error) {
-    console.error("Formation creation error:", error);
+    console.error("Teacher creation error:", error);
     return NextResponse.json(
       { error: t.api.serverError },
       { status: 500 }

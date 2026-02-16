@@ -96,6 +96,14 @@ const navItems: NavItem[] = [
     href: "/admin/formations",
     icon: GraduationCap,
     roles: ["ADMIN", "CENTER_STAFF"],
+    children: [
+      {
+        labelKey: "teachers",
+        href: "/admin/formations/teachers",
+        icon: Users,
+        roles: ["ADMIN", "CENTER_STAFF"],
+      },
+    ],
   },
 ];
 

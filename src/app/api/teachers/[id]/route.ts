@@ -18,20 +18,17 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const formation = await prisma.formation.update({
+    const teacher = await prisma.teacher.update({
       where: { id: params.id },
       data: {
         name: body.name,
-        teacherId: body.teacherId || null,
-        dates: body.dates
-          ? body.dates.map((d: string) => new Date(d))
-          : [],
+        email: body.email || null,
+        phone: body.phone || null,
       },
-      include: { teacher: true },
     });
-    return NextResponse.json(formation);
+    return NextResponse.json(teacher);
   } catch (error) {
-    console.error("Formation update error:", error);
+    console.error("Teacher update error:", error);
     return NextResponse.json(
       { error: t.api.serverError },
       { status: 500 }
@@ -52,6 +49,6 @@ export async function DELETE(
     return NextResponse.json({ error: t.api.forbidden }, { status: 403 });
   }
 
-  await prisma.formation.delete({ where: { id: params.id } });
+  await prisma.teacher.delete({ where: { id: params.id } });
   return NextResponse.json({ success: true });
 }

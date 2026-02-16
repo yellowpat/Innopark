@@ -61,6 +61,7 @@ export interface Dictionary {
     reports: string;
     holidays: string;
     formations: string;
+    teachers: string;
   };
   auth: {
     login: string;
@@ -330,6 +331,16 @@ export interface Dictionary {
       teacherName: string;
       sessionDates: string;
       addDate: string;
+      selectTeacher: string;
+    };
+    teachers: {
+      title: string;
+      addTeacher: string;
+      editTeacher: string;
+      confirmDelete: string;
+      noTeachers: string;
+      teacherName: string;
+      phone: string;
     };
   };
   roleSwitcher: {
@@ -363,6 +374,9 @@ export interface Dictionary {
     formationCreated: string;
     formationUpdated: string;
     formationDeleted: string;
+    teacherCreated: string;
+    teacherUpdated: string;
+    teacherDeleted: string;
     loginFailed: string;
     registrationFailed: string;
     emailAlreadyExists: string;

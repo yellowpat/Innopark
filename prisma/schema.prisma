@@ -155,10 +155,24 @@ model AttendanceRecord {
   @@map("attendance_records")
 }
 
+model Teacher {
+  id        String      @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+
+  formations Formation[]
+
+  @@map("teachers")
+}
+
 model Formation {
   id        String     @id @default(cuid())
   name      String
-  teacher   String?
+  teacherId String?
+  teacher   Teacher?   @relation(fields: [teacherId], references: [id])
   dates     DateTime[]
   active    Boolean    @default(true)
   createdAt DateTime   @default(now())
